@@ -17,13 +17,13 @@ class ScanResultPage extends StatefulWidget {
 class _ScanResultPageState extends State<ScanResultPage> {
   final Set<String> _figurinhasSelecionadas = {};
 
-void _confirmarFigurinhas() {
-  final figurinhas = _figurinhasSelecionadas.toList();
+  void _confirmarFigurinhas() {
+    final figurinhas = _figurinhasSelecionadas.toList();
 
-  figurinhas.sort(_compararCodigos);
+    figurinhas.sort(_compararCodigos);
 
-  Navigator.pop(context, figurinhas);
-}
+    Navigator.pop(context, figurinhas);
+  }
 
   void _selecionarTodas() {
     setState(() {

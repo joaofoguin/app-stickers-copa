@@ -3,14 +3,8 @@ import '../../../utils/pais_utils.dart';
 
 class AlbumScanService {
   Future<ScanResult> processarTextoManual(String texto) async {
-    await Future.delayed(const Duration(milliseconds: 400));
-
-    final codigos = _detectarCodigos(texto);
-
-    return ScanResult(
-      codigosDetectados: codigos,
-      textoExtraido: texto,
-    );
+    await Future.delayed(const Duration(milliseconds: 300));
+    return processarTextoExtraido(texto);
   }
 
   ScanResult processarTextoExtraido(String texto) {
@@ -70,13 +64,7 @@ class AlbumScanService {
     final entradasOrdenadas = contagem.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
-    final melhorResultado = entradasOrdenadas.first;
-
-    if (melhorResultado.value < 2) {
-      return null;
-    }
-
-    return melhorResultado.key;
+    return entradasOrdenadas.first.key;
   }
 
   List<String> _detectarCodigos(String texto) {
@@ -105,7 +93,6 @@ class AlbumScanService {
 
   bool _pareceCodigoDeFigurinha(String codigo) {
     final regexValido = RegExp(r'^([A-Z]{2,4})(\d{1,3})$');
-
     final match = regexValido.firstMatch(codigo);
 
     if (match == null) {

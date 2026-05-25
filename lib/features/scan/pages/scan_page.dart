@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../utils/pais_utils.dart';
 import '../models/scan_result.dart';
 import '../services/album_scan_service.dart';
 import '../services/web_ocr_service.dart';
@@ -29,14 +30,16 @@ class _ScanPageState extends State<ScanPage> {
 
   bool _carregando = false;
   Uint8List? _imagemBytes;
+  String? _ultimoTextoOcr;
 
-  final List<_SelecaoScan> _selecoes = const [
-    _SelecaoScan(nome: 'México', prefixo: 'MEX', quantidade: 20),
-    _SelecaoScan(nome: 'África do Sul', prefixo: 'RSA', quantidade: 20),
-    _SelecaoScan(nome: 'Brasil', prefixo: 'BRA', quantidade: 20),
-    _SelecaoScan(nome: 'Argentina', prefixo: 'ARG', quantidade: 20),
-    _SelecaoScan(nome: 'Estados Unidos', prefixo: 'USA', quantidade: 20),
-  ];
+  late final List<_SelecaoScan> _selecoes = siglasPorPais.entries.map((entry) {
+    return _SelecaoScan(
+      nome: entry.key,
+      prefixo: entry.value,
+      quantidade: 20,
+    );
+  }).toList()
+    ..sort((a, b) => a.nome.compareTo(b.nome));
 
   _SelecaoScan? _selecaoSelecionada;
 
@@ -53,6 +56,7 @@ class _ScanPageState extends State<ScanPage> {
 
     setState(() {
       _imagemBytes = bytes;
+      _ultimoTextoOcr = null;
     });
   }
 
@@ -76,6 +80,10 @@ class _ScanPageState extends State<ScanPage> {
       final resultado = _scanService.processarTextoExtraido(textoExtraido);
       final prefixoDetectado = _scanService.detectarPrefixoDoTexto(textoExtraido);
 
+      setState(() {
+        _ultimoTextoOcr = textoExtraido;
+      });
+
       if (prefixoDetectado != null) {
         final codigosGerados = _scanService.gerarCodigosPorPrefixo(
           prefixo: prefixoDetectado,
@@ -83,7 +91,10 @@ class _ScanPageState extends State<ScanPage> {
           fim: 20,
         );
 
+        final selecao = _buscarSelecaoPorPrefixo(prefixoDetectado);
+
         setState(() {
+          _selecaoSelecionada = selecao;
           _prefixoController.text = prefixoDetectado;
           _inicioController.text = '1';
           _fimController.text = '20';
@@ -126,7 +137,7 @@ class _ScanPageState extends State<ScanPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Não consegui reconhecer a seleção automaticamente. Escolha a seleção manualmente ou gere pelos campos abaixo.',
+            'Não consegui reconhecer com segurança. Escolha a seleção manualmente.',
           ),
         ),
       );
@@ -145,6 +156,18 @@ class _ScanPageState extends State<ScanPage> {
         });
       }
     }
+  }
+
+  _SelecaoScan? _buscarSelecaoPorPrefixo(String prefixo) {
+    final prefixoNormalizado = prefixo.trim().toUpperCase();
+
+    for (final selecao in _selecoes) {
+      if (selecao.prefixo.toUpperCase() == prefixoNormalizado) {
+        return selecao;
+      }
+    }
+
+    return null;
   }
 
   void _aplicarSelecao(_SelecaoScan? selecao) {
@@ -173,9 +196,10 @@ class _ScanPageState extends State<ScanPage> {
       return;
     }
 
-    final codigos = List.generate(
-      fim - inicio + 1,
-      (index) => '$prefixo${inicio + index}',
+    final codigos = _scanService.gerarCodigosPorPrefixo(
+      prefixo: prefixo,
+      inicio: inicio,
+      fim: fim,
     );
 
     _codigosController.text = codigos.join(', ');
@@ -232,6 +256,32 @@ class _ScanPageState extends State<ScanPage> {
     }
   }
 
+  void _mostrarTextoOcr() {
+    final texto = _ultimoTextoOcr?.trim();
+
+    showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Texto reconhecido pelo OCR'),
+          content: SingleChildScrollView(
+            child: Text(
+              texto == null || texto.isEmpty
+                  ? 'Nenhum texto foi reconhecido.'
+                  : texto,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Fechar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _prefixoController.dispose();
@@ -245,6 +295,7 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     final temImagem = _imagemBytes != null;
+    final temTextoOcr = _ultimoTextoOcr != null && _ultimoTextoOcr!.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -289,6 +340,15 @@ class _ScanPageState extends State<ScanPage> {
               label: const Text('Reconhecer automaticamente'),
             ),
 
+            if (temTextoOcr) ...[
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: _mostrarTextoOcr,
+                icon: const Icon(Icons.subject),
+                label: const Text('Ver texto reconhecido'),
+              ),
+            ],
+
             const SizedBox(height: 24),
 
             const Text(
@@ -302,7 +362,7 @@ class _ScanPageState extends State<ScanPage> {
             const SizedBox(height: 8),
 
             const Text(
-              'Você pode reconhecer pela foto, escolher a seleção ou informar o prefixo manualmente. Depois confirme quais figurinhas estão coladas.',
+              'O OCR tenta detectar a seleção pela foto. Se não conseguir com segurança, escolha a seleção manualmente e confirme quais figurinhas estão coladas.',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey,
@@ -313,6 +373,7 @@ class _ScanPageState extends State<ScanPage> {
 
             DropdownButtonFormField<_SelecaoScan>(
               value: _selecaoSelecionada,
+              isExpanded: true,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Seleção',
@@ -421,7 +482,7 @@ class _ScanPageState extends State<ScanPage> {
             const SizedBox(height: 16),
 
             const Text(
-              'O reconhecimento automático pode errar alguns códigos. Confira o campo antes de continuar.',
+              'O reconhecimento automático é apenas uma ajuda. Sempre confira os códigos antes de continuar.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
@@ -468,7 +529,7 @@ class _ScanPlaceholder extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'O app tentará reconhecer os códigos automaticamente.',
+            'O app tentará reconhecer a seleção automaticamente.',
             textAlign: TextAlign.center,
           ),
         ],

@@ -115,6 +115,135 @@ const Map<String, String> nomesInglesParaNomeApp = {
   'COCA-COLA': 'COCA-COLA',
 };
 
+String? prefixoPorNomeDetectadoNoAlbum(String textoDetectado) {
+  final textoNormalizado = normalizarTextoPais(textoDetectado);
+
+  final apelidosFortes = <String, String>{
+    'MEXICO': 'MÉXICO',
+    'MEXIC0': 'MÉXICO',
+    'MEX1CO': 'MÉXICO',
+    'MEXLCO': 'MÉXICO',
+    'MEX ICO': 'MÉXICO',
+    'WE ARE MEXICO': 'MÉXICO',
+
+    'SOUTH AFRICA': 'ÁFRICA DO SUL',
+    'S0UTH AFRICA': 'ÁFRICA DO SUL',
+    'SOUTH AFR1CA': 'ÁFRICA DO SUL',
+
+    'BRAZIL': 'BRASIL',
+    'ARGENTINA': 'ARGENTINA',
+    'GERMANY': 'ALEMANHA',
+    'FRANCE': 'FRANÇA',
+    'ENGLAND': 'INGLATERRA',
+    'PORTUGAL': 'PORTUGAL',
+    'SPAIN': 'ESPANHA',
+    'JAPAN': 'JAPÃO',
+    'NETHERLANDS': 'HOLANDA',
+    'BELGIUM': 'BÉLGICA',
+    'CROATIA': 'CROÁCIA',
+    'COLOMBIA': 'COLÔMBIA',
+    'URUGUAY': 'URUGUAI',
+    'PARAGUAY': 'PARAGUAI',
+    'AUSTRALIA': 'AUSTRÁLIA',
+    'CANADA': 'CANADÁ',
+    'MOROCCO': 'MARROCOS',
+    'SENEGAL': 'SENEGAL',
+    'TUNISIA': 'TUNÍSIA',
+    'ALGERIA': 'ARGÉLIA',
+    'AUSTRIA': 'ÁUSTRIA',
+    'NORWAY': 'NORUEGA',
+    'SWEDEN': 'SUÉCIA',
+    'EGYPT': 'EGITO',
+    'ECUADOR': 'EQUADOR',
+    'PANAMA': 'PANAMÁ',
+    'SCOTLAND': 'ESCÓCIA',
+    'TURKEY': 'TURQUIA',
+    'TÜRKIYE': 'TURQUIA',
+    'JORDAN': 'JORDÂNIA',
+    'UZBEKISTAN': 'UZBEQUISTÃO',
+
+    'REPUBLIC OF KOREA': 'REPÚBLICA DA CORÉIA',
+    'KOREA REPUBLIC': 'REPÚBLICA DA CORÉIA',
+    'CZECH REPUBLIC': 'REPÚBLICA TCHECA',
+    'BOSNIA AND HERZEGOVINA': 'BOSNIA E HERZEGOVINA',
+    'UNITED STATES OF AMERICA': 'ESTADOS UNIDOS',
+    'UNITED STATES': 'ESTADOS UNIDOS',
+    'COTE D IVOIRE': 'COSTA DO MARFIM',
+    'CÔTE D IVOIRE': 'COSTA DO MARFIM',
+    'IVORY COAST': 'COSTA DO MARFIM',
+    'NEW ZEALAND': 'NOVA ZELÂNDIA',
+    'CAPE VERDE': 'CABO VERDE',
+    'SAUDI ARABIA': 'ARÁBIA SAUDITA',
+    'DR CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
+    'CONGO DR': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
+    'DEMOCRATIC REPUBLIC OF THE CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
+    'COCA COLA': 'COCA-COLA',
+    'COCA-COLA': 'COCA-COLA',
+  };
+
+  for (final entrada in apelidosFortes.entries) {
+    final aliasNormalizado = normalizarTextoPais(entrada.key);
+
+    if (_textoContemTermoFlexivel(textoNormalizado, aliasNormalizado)) {
+      return nomeReduzidoPais(entrada.value);
+    }
+  }
+
+  final nomesOrdenados = nomesInglesParaNomeApp.entries.toList()
+    ..sort((a, b) {
+      final aNormalizado = normalizarTextoPais(a.key);
+      final bNormalizado = normalizarTextoPais(b.key);
+      return bNormalizado.length.compareTo(aNormalizado.length);
+    });
+
+  for (final entrada in nomesOrdenados) {
+    final nomeInglesNormalizado = normalizarTextoPais(entrada.key);
+
+    if (_nomeCurtoAmbiguo(nomeInglesNormalizado)) {
+      continue;
+    }
+
+    if (_textoContemTermoFlexivel(textoNormalizado, nomeInglesNormalizado)) {
+      return nomeReduzidoPais(entrada.value);
+    }
+  }
+
+  return null;
+}
+
+bool _textoContemTermoFlexivel(String textoNormalizado, String termoNormalizado) {
+  if (termoNormalizado.isEmpty) return false;
+
+  final textoComEspacos = ' $textoNormalizado ';
+  final termoComEspacos = ' $termoNormalizado ';
+
+  if (textoComEspacos.contains(termoComEspacos)) {
+    return true;
+  }
+
+  final textoSemEspacos = textoNormalizado.replaceAll(' ', '');
+  final termoSemEspacos = termoNormalizado.replaceAll(' ', '');
+
+  if (termoSemEspacos.length >= 5 && textoSemEspacos.contains(termoSemEspacos)) {
+    return true;
+  }
+
+  return false;
+}
+
+bool _nomeCurtoAmbiguo(String nomeNormalizado) {
+  const nomesAmbiguos = {
+    'IRAN',
+    'IRAQ',
+    'USA',
+    'QATAR',
+    'HAITI',
+    'GHANA',
+  };
+
+  return nomesAmbiguos.contains(nomeNormalizado);
+}
+
 String normalizarTextoPais(String texto) {
   return texto
       .trim()
@@ -199,27 +328,4 @@ String nomeReduzidoPais(String nome) {
   }
 
   return nomeNormalizado.substring(0, 3);
-}
-
-String? prefixoPorNomeDetectadoNoAlbum(String textoDetectado) {
-  final textoNormalizado = normalizarTextoPais(textoDetectado);
-
-  for (final entrada in nomesInglesParaNomeApp.entries) {
-    final nomeInglesNormalizado = normalizarTextoPais(entrada.key);
-
-    if (textoNormalizado.contains(nomeInglesNormalizado)) {
-      final nomeApp = entrada.value;
-      return nomeReduzidoPais(nomeApp);
-    }
-  }
-
-  for (final entrada in siglasPorPais.entries) {
-    final nomePortuguesNormalizado = normalizarTextoPais(entrada.key);
-
-    if (textoNormalizado.contains(nomePortuguesNormalizado)) {
-      return entrada.value;
-    }
-  }
-
-  return null;
 }

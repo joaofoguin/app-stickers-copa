@@ -4,7 +4,6 @@ window.reconhecerTextoImagem = async function (base64Image) {
   }
 
   const worker = await Tesseract.createWorker('eng');
-
   const resultado = await worker.recognize(base64Image);
 
   await worker.terminate();

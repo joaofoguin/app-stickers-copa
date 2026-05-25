@@ -80,6 +80,41 @@ class _HomePageState extends State<HomePage> {
     colecaoStorage.salvarFigurinha(figurinha);
   }
 
+  void marcarFigurinhasPorCodigo(List<String> codigos) {
+    final codigosNormalizados = codigos
+        .map((codigo) => codigo.toUpperCase().trim())
+        .toSet();
+
+    final figurinhasEncontradas = figurinhas.where((figurinha) {
+      return codigosNormalizados.contains(
+        figurinha.numeroAlbum.toUpperCase().trim(),
+      );
+    }).toList();
+
+    setState(() {
+      for (final figurinha in figurinhasEncontradas) {
+        figurinha.tenho = true;
+      }
+    });
+
+    for (final figurinha in figurinhasEncontradas) {
+      colecaoStorage.salvarFigurinha(figurinha);
+    }
+
+    final totalNaoEncontradas =
+        codigosNormalizados.length - figurinhasEncontradas.length;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          totalNaoEncontradas == 0
+              ? '${figurinhasEncontradas.length} figurinha(s) marcada(s) como possuída(s).'
+              : '${figurinhasEncontradas.length} marcada(s). $totalNaoEncontradas código(s) não encontrado(s).',
+        ),
+      ),
+    );
+  }
+
   void adicionarRepetida(Figurinha figurinha) {
     setState(() {
       figurinha.repetidas++;
@@ -136,14 +171,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> abrirScanPage() async {
-    await Navigator.push(
+    final codigosConfirmados = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(
-        builder: (context) => const ScanPage(),
+        builder: (_) => const ScanPage(),
       ),
     );
 
-    await carregarFigurinhasDaApi();
+    if (!mounted) return;
+
+    if (codigosConfirmados != null && codigosConfirmados.isNotEmpty) {
+      marcarFigurinhasPorCodigo(codigosConfirmados);
+    }
   }
 
   void trocarTela(int indice) {
