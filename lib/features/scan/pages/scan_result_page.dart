@@ -7,11 +7,13 @@ import '../models/scan_result.dart';
 class ScanResultPage extends StatefulWidget {
   final ScanResult resultado;
   final Uint8List? imagemBytes;
+  final Set<String> codigosJaPossuidos;
 
   const ScanResultPage({
     super.key,
     required this.resultado,
     this.imagemBytes,
+    this.codigosJaPossuidos = const {},
   });
 
   @override
@@ -33,7 +35,13 @@ class _ScanResultPageState extends State<ScanResultPage> {
     setState(() {
       _figurinhasSelecionadas
         ..clear()
-        ..addAll(widget.resultado.codigosDetectados);
+        ..addAll(
+          widget.resultado.codigosDetectados.where((codigo) {
+            return !widget.codigosJaPossuidos.contains(
+              codigo.toUpperCase().trim(),
+            );
+          }),
+        );
     });
   }
 
@@ -140,21 +148,25 @@ class _ScanResultPageState extends State<ScanResultPage> {
                         ),
                         itemBuilder: (context, index) {
                           final codigo = codigos[index];
-                          final selecionada =
-                              _figurinhasSelecionadas.contains(codigo);
+                          final codigoNormalizado = codigo.toUpperCase().trim();
 
+                          final jaPossui = widget.codigosJaPossuidos.contains(codigoNormalizado);
+                          final selecionada = jaPossui || _figurinhasSelecionadas.contains(codigoNormalizado);
                           return _CodigoFigurinhaTile(
                             codigo: codigo,
                             selecionada: selecionada,
-                            onTap: () {
-                              setState(() {
-                                if (selecionada) {
-                                  _figurinhasSelecionadas.remove(codigo);
-                                } else {
-                                  _figurinhasSelecionadas.add(codigo);
-                                }
-                              });
-                            },
+                            jaPossui: jaPossui,
+                            onTap: jaPossui
+                                ? null
+                                : () {
+                                    setState(() {
+                                      if (selecionada) {
+                                        _figurinhasSelecionadas.remove(codigoNormalizado);
+                                      } else {
+                                        _figurinhasSelecionadas.add(codigoNormalizado);
+                                      }
+                                    });
+                                  },
                           );
                         },
                       )
@@ -189,11 +201,13 @@ class _ScanResultPageState extends State<ScanResultPage> {
 class _CodigoFigurinhaTile extends StatelessWidget {
   final String codigo;
   final bool selecionada;
-  final VoidCallback onTap;
+  final bool jaPossui;
+  final VoidCallback? onTap;
 
   const _CodigoFigurinhaTile({
     required this.codigo,
     required this.selecionada,
+    required this.jaPossui, 
     required this.onTap,
   });
 

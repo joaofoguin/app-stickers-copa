@@ -328,12 +328,18 @@ class _ScanPageState extends State<ScanPage> {
 
       if (!mounted) return;
 
+      final codigosJaPossuidos = widget.figurinhas
+          .where((figurinha) => figurinha.tenho)
+          .map((figurinha) => figurinha.numeroAlbum.toUpperCase().trim())
+          .toSet();
+
       final codigosConfirmados = await Navigator.push<List<String>>(
         context,
         MaterialPageRoute(
           builder: (_) => ScanResultPage(
             resultado: resultado,
             imagemBytes: _imagemBytes,
+            codigosJaPossuidos: codigosJaPossuidos,
           ),
         ),
       );
