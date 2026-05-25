@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../models/figurinha.dart';
 import '../../../utils/pais_utils.dart';
 import '../models/scan_result.dart';
 import '../services/album_scan_service.dart';
@@ -10,7 +11,12 @@ import '../services/web_ocr_service.dart';
 import 'scan_result_page.dart';
 
 class ScanPage extends StatefulWidget {
-  const ScanPage({super.key});
+  final List<Figurinha> figurinhas;
+
+  const ScanPage({
+    super.key,
+    required this.figurinhas,
+  });
 
   @override
   State<ScanPage> createState() => _ScanPageState();
@@ -32,16 +38,68 @@ class _ScanPageState extends State<ScanPage> {
   Uint8List? _imagemBytes;
   String? _ultimoTextoOcr;
 
-  late final List<_SelecaoScan> _selecoes = siglasPorPais.entries.map((entry) {
-    return _SelecaoScan(
-      nome: entry.key,
-      prefixo: entry.value,
-      quantidade: 20,
-    );
-  }).toList()
-    ..sort((a, b) => a.nome.compareTo(b.nome));
+  late final List<_SelecaoScan> _selecoes = _montarSelecoes();
 
   _SelecaoScan? _selecaoSelecionada;
+
+  List<_SelecaoScan> _montarSelecoes() {
+    final selecoes = <_SelecaoScan>[];
+
+    for (final entrada in siglasPorPais.entries) {
+      final nomePais = entrada.key;
+      final prefixo = entrada.value;
+
+      final codigos = widget.figurinhas
+          .where((figurinha) {
+            final numeroAlbum = figurinha.numeroAlbum.toUpperCase().trim();
+            return numeroAlbum.startsWith(prefixo);
+          })
+          .map((figurinha) => figurinha.numeroAlbum.toUpperCase().trim())
+          .toSet()
+          .toList();
+
+      codigos.sort(_compararCodigos);
+
+      if (codigos.isNotEmpty) {
+        selecoes.add(
+          _SelecaoScan(
+            nome: nomePais,
+            prefixo: prefixo,
+            codigos: codigos,
+          ),
+        );
+      }
+    }
+
+    selecoes.sort((a, b) => a.nome.compareTo(b.nome));
+
+    return selecoes;
+  }
+
+  int _compararCodigos(String a, String b) {
+    final regex = RegExp(r'^([A-Z]+)(\d+)$');
+
+    final matchA = regex.firstMatch(a);
+    final matchB = regex.firstMatch(b);
+
+    if (matchA == null || matchB == null) {
+      return a.compareTo(b);
+    }
+
+    final prefixoA = matchA.group(1)!;
+    final prefixoB = matchB.group(1)!;
+
+    final comparacaoPrefixo = prefixoA.compareTo(prefixoB);
+
+    if (comparacaoPrefixo != 0) {
+      return comparacaoPrefixo;
+    }
+
+    final numeroA = int.parse(matchA.group(2)!);
+    final numeroB = int.parse(matchB.group(2)!);
+
+    return numeroA.compareTo(numeroB);
+  }
 
   Future<void> _selecionarImagem() async {
     final XFile? imagem = await _picker.pickImage(
@@ -78,23 +136,45 @@ class _ScanPageState extends State<ScanPage> {
       final textoExtraido = await _webOcrService.reconhecerTexto(_imagemBytes!);
 
       final resultado = _scanService.processarTextoExtraido(textoExtraido);
-      final prefixoDetectado = _scanService.detectarPrefixoDoTexto(textoExtraido);
+      final prefixoDetectado =
+          _scanService.detectarPrefixoDoTexto(textoExtraido);
 
       setState(() {
         _ultimoTextoOcr = textoExtraido;
       });
 
       if (prefixoDetectado != null) {
+        final selecao = _buscarSelecaoPorPrefixo(prefixoDetectado);
+
+        if (selecao != null) {
+          setState(() {
+            _selecaoSelecionada = selecao;
+            _prefixoController.text = selecao.prefixo;
+            _inicioController.text = '1';
+            _fimController.text = selecao.codigos.length.toString();
+            _codigosController.text = selecao.codigos.join(', ');
+          });
+
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Seleção detectada: ${selecao.nome}. Códigos carregados da API.',
+              ),
+            ),
+          );
+
+          return;
+        }
+
         final codigosGerados = _scanService.gerarCodigosPorPrefixo(
           prefixo: prefixoDetectado,
           inicio: 1,
           fim: 20,
         );
 
-        final selecao = _buscarSelecaoPorPrefixo(prefixoDetectado);
-
         setState(() {
-          _selecaoSelecionada = selecao;
           _prefixoController.text = prefixoDetectado;
           _inicioController.text = '1';
           _fimController.text = '20';
@@ -106,7 +186,7 @@ class _ScanPageState extends State<ScanPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Seleção detectada: $prefixoDetectado. Códigos gerados automaticamente.',
+              'Prefixo detectado: $prefixoDetectado. Códigos gerados automaticamente.',
             ),
           ),
         );
@@ -177,8 +257,8 @@ class _ScanPageState extends State<ScanPage> {
       _selecaoSelecionada = selecao;
       _prefixoController.text = selecao.prefixo;
       _inicioController.text = '1';
-      _fimController.text = selecao.quantidade.toString();
-      _gerarCodigos();
+      _fimController.text = selecao.codigos.length.toString();
+      _codigosController.text = selecao.codigos.join(', ');
     });
   }
 
@@ -193,6 +273,27 @@ class _ScanPageState extends State<ScanPage> {
         inicio <= 0 ||
         fim < inicio) {
       _codigosController.clear();
+      return;
+    }
+
+    final selecao = _buscarSelecaoPorPrefixo(prefixo);
+
+    if (selecao != null) {
+      final codigosFiltrados = selecao.codigos.where((codigo) {
+        final match = RegExp(r'^([A-Z]+)(\d+)$').firstMatch(codigo);
+
+        if (match == null) return true;
+
+        final numero = int.tryParse(match.group(2)!);
+
+        if (numero == null) return true;
+
+        return numero >= inicio && numero <= fim;
+      }).toList();
+
+      codigosFiltrados.sort(_compararCodigos);
+
+      _codigosController.text = codigosFiltrados.join(', ');
       return;
     }
 
@@ -230,7 +331,10 @@ class _ScanPageState extends State<ScanPage> {
       final codigosConfirmados = await Navigator.push<List<String>>(
         context,
         MaterialPageRoute(
-          builder: (_) => ScanResultPage(resultado: resultado),
+          builder: (_) => ScanResultPage(
+            resultado: resultado,
+            imagemBytes: _imagemBytes,
+          ),
         ),
       );
 
@@ -295,7 +399,8 @@ class _ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     final temImagem = _imagemBytes != null;
-    final temTextoOcr = _ultimoTextoOcr != null && _ultimoTextoOcr!.trim().isNotEmpty;
+    final temTextoOcr =
+        _ultimoTextoOcr != null && _ultimoTextoOcr!.trim().isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -320,9 +425,7 @@ class _ScanPageState extends State<ScanPage> {
                     : const _ScanPlaceholder(),
               ),
             ),
-
             const SizedBox(height: 20),
-
             ElevatedButton.icon(
               onPressed: _carregando ? null : _selecionarImagem,
               icon: const Icon(Icons.photo_library_outlined),
@@ -330,16 +433,13 @@ class _ScanPageState extends State<ScanPage> {
                 temImagem ? 'Trocar imagem' : 'Escolher imagem da página',
               ),
             ),
-
             const SizedBox(height: 12),
-
             OutlinedButton.icon(
               onPressed:
                   _carregando || !temImagem ? null : _reconhecerAutomaticamente,
               icon: const Icon(Icons.auto_awesome),
               label: const Text('Reconhecer automaticamente'),
             ),
-
             if (temTextoOcr) ...[
               const SizedBox(height: 8),
               TextButton.icon(
@@ -348,9 +448,7 @@ class _ScanPageState extends State<ScanPage> {
                 label: const Text('Ver texto reconhecido'),
               ),
             ],
-
             const SizedBox(height: 24),
-
             const Text(
               'Gerar códigos da página',
               style: TextStyle(
@@ -358,9 +456,7 @@ class _ScanPageState extends State<ScanPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-
             const SizedBox(height: 8),
-
             const Text(
               'O OCR tenta detectar a seleção pela foto. Se não conseguir com segurança, escolha a seleção manualmente e confirme quais figurinhas estão coladas.',
               style: TextStyle(
@@ -368,9 +464,7 @@ class _ScanPageState extends State<ScanPage> {
                 color: Colors.grey,
               ),
             ),
-
             const SizedBox(height: 16),
-
             DropdownButtonFormField<_SelecaoScan>(
               value: _selecaoSelecionada,
               isExpanded: true,
@@ -381,14 +475,14 @@ class _ScanPageState extends State<ScanPage> {
               items: _selecoes.map((selecao) {
                 return DropdownMenuItem<_SelecaoScan>(
                   value: selecao,
-                  child: Text('${selecao.nome} (${selecao.prefixo})'),
+                  child: Text(
+                    '${selecao.nome} (${selecao.prefixo}) - ${selecao.codigos.length}',
+                  ),
                 );
               }).toList(),
               onChanged: _carregando ? null : _aplicarSelecao,
             ),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
@@ -433,9 +527,7 @@ class _ScanPageState extends State<ScanPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
             Align(
               alignment: Alignment.centerLeft,
               child: OutlinedButton.icon(
@@ -444,9 +536,7 @@ class _ScanPageState extends State<ScanPage> {
                 label: const Text('Gerar códigos'),
               ),
             ),
-
             const SizedBox(height: 16),
-
             TextField(
               controller: _codigosController,
               enabled: !_carregando,
@@ -459,9 +549,7 @@ class _ScanPageState extends State<ScanPage> {
                 hintText: 'Exemplo: MEX1, MEX2, MEX3...',
               ),
             ),
-
             const SizedBox(height: 24),
-
             if (_carregando)
               const Center(
                 child: Column(
@@ -478,9 +566,7 @@ class _ScanPageState extends State<ScanPage> {
                 icon: const Icon(Icons.checklist_outlined),
                 label: const Text('Continuar para confirmação'),
               ),
-
             const SizedBox(height: 16),
-
             const Text(
               'O reconhecimento automático é apenas uma ajuda. Sempre confira os códigos antes de continuar.',
               textAlign: TextAlign.center,
@@ -541,11 +627,11 @@ class _ScanPlaceholder extends StatelessWidget {
 class _SelecaoScan {
   final String nome;
   final String prefixo;
-  final int quantidade;
+  final List<String> codigos;
 
   const _SelecaoScan({
     required this.nome,
     required this.prefixo,
-    required this.quantidade,
+    required this.codigos,
   });
 }

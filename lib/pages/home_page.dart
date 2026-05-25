@@ -174,7 +174,9 @@ class _HomePageState extends State<HomePage> {
     final codigosConfirmados = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(
-        builder: (_) => const ScanPage(),
+        builder: (_) => ScanPage(
+          figurinhas: figurinhas,
+        ),
       ),
     );
 

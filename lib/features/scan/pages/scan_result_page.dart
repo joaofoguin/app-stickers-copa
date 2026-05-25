@@ -1,13 +1,17 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../models/scan_result.dart';
 
 class ScanResultPage extends StatefulWidget {
   final ScanResult resultado;
+  final Uint8List? imagemBytes;
 
   const ScanResultPage({
     super.key,
     required this.resultado,
+    this.imagemBytes,
   });
 
   @override
@@ -75,23 +79,39 @@ class _ScanResultPageState extends State<ScanResultPage> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (widget.imagemBytes != null) ...[
+                SizedBox(
+                  height: 190,
+                  width: double.infinity,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.memory(
+                      widget.imagemBytes!,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               _ResumoScanCard(
                 totalCodigos: codigos.length,
                 totalSelecionadas: _figurinhasSelecionadas.length,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Marque apenas as figurinhas que estão coladas no álbum:',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(height: 12),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Toque nas figurinhas que estão coladas no álbum:',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               if (encontrouCodigos)
                 Row(
                   children: [
@@ -109,33 +129,29 @@ class _ScanResultPageState extends State<ScanResultPage> {
                 ),
               Expanded(
                 child: encontrouCodigos
-                    ? ListView.separated(
+                    ? GridView.builder(
                         itemCount: codigos.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        gridDelegate:
+                            const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 110,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 1.35,
+                        ),
                         itemBuilder: (context, index) {
                           final codigo = codigos[index];
                           final selecionada =
                               _figurinhasSelecionadas.contains(codigo);
 
-                          return CheckboxListTile(
-                            value: selecionada,
-                            title: Text(
-                              codigo,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            subtitle: Text(
-                              selecionada
-                                  ? 'Será marcada como possuída'
-                                  : 'Ainda não selecionada',
-                            ),
-                            onChanged: (valor) {
+                          return _CodigoFigurinhaTile(
+                            codigo: codigo,
+                            selecionada: selecionada,
+                            onTap: () {
                               setState(() {
-                                if (valor == true) {
-                                  _figurinhasSelecionadas.add(codigo);
-                                } else {
+                                if (selecionada) {
                                   _figurinhasSelecionadas.remove(codigo);
+                                } else {
+                                  _figurinhasSelecionadas.add(codigo);
                                 }
                               });
                             },
@@ -144,7 +160,7 @@ class _ScanResultPageState extends State<ScanResultPage> {
                       )
                     : const Center(
                         child: Text(
-                          'Nenhum código foi encontrado.\n\nVolte e digite códigos como MEX1, MEX2 ou BRA10.',
+                          'Nenhum código foi encontrado.\n\nVolte e escolha uma seleção ou digite códigos como MEX1, MEX2 ou BRA10.',
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -170,6 +186,73 @@ class _ScanResultPageState extends State<ScanResultPage> {
   }
 }
 
+class _CodigoFigurinhaTile extends StatelessWidget {
+  final String codigo;
+  final bool selecionada;
+  final VoidCallback onTap;
+
+  const _CodigoFigurinhaTile({
+    required this.codigo,
+    required this.selecionada,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: selecionada
+          ? colorScheme.primaryContainer
+          : colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selecionada
+                  ? colorScheme.primary
+                  : colorScheme.outlineVariant,
+              width: selecionada ? 2 : 1,
+            ),
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Stack(
+            children: [
+              Center(
+                child: Text(
+                  codigo,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: selecionada
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (selecionada)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Icon(
+                    Icons.check_circle,
+                    color: colorScheme.primary,
+                    size: 22,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ResumoScanCard extends StatelessWidget {
   final int totalCodigos;
   final int totalSelecionadas;
@@ -182,12 +265,13 @@ class _ResumoScanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.checklist_outlined, size: 36),
-            const SizedBox(width: 16),
+            const Icon(Icons.checklist_outlined, size: 32),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -195,7 +279,7 @@ class _ResumoScanCard extends StatelessWidget {
                   Text(
                     '$totalCodigos código(s) na página',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
