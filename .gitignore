@@ -1,0 +1,90 @@
+# Dart / Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# Flutter generated
+generated_plugin_registrant.dart
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+android/key.properties
+android/**/*.keystore
+android/**/*.jks
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/build/
+
+# macOS
+macos/Pods/
+macos/.symlinks/
+macos/Flutter/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/build/
+
+# Windows
+windows/flutter/ephemeral/
+windows/build/
+
+# Linux
+linux/flutter/ephemeral/
+linux/build/
+
+# Web
+web/.dart_tool/
+
+# IDEs
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+*.iml
+
+# VS Code temporary
+.history/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+.env.*
+*.env
+
+# Firebase / Google / Apple sensitive files
+google-services.json
+GoogleService-Info.plist
+*.p8
+*.mobileprovision
+*.cer
+*.pem
+
+# Local databases / temporary files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage / tests
+coverage/
+
+# Misc
+*.tmp
+*.temp
