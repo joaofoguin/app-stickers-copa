@@ -54,6 +54,23 @@ class SecaoPaisGrid extends StatelessWidget {
     );
   }
 
+  void aoTocarFigurinha(BuildContext context, Figurinha figurinha) {
+    if (!figurinha.tenho) {
+      onMarcar(figurinha, true);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${figurinha.numeroAlbum} marcada como preenchida'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      return;
+    }
+
+    abrirAcoesFigurinha(context, figurinha);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bandeira = bandeiraEmojiPais(pais);
@@ -126,7 +143,9 @@ class SecaoPaisGrid extends StatelessWidget {
 
             return FigurinhaGridTile(
               figurinha: figurinha,
-              onTap: () => abrirAcoesFigurinha(context, figurinha),
+              onTap: () {
+                aoTocarFigurinha(context, figurinha);
+              },
             );
           },
         ),
