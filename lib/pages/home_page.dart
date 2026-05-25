@@ -6,6 +6,7 @@ import '../pages/colecao_page.dart';
 import '../pages/estatisticas_page.dart';
 import '../services/figurinha_service.dart';
 import '../storage/colecao_storage.dart';
+import '../pages/configuracoes_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -303,8 +304,16 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return EstatisticasPage(
-      figurinhas: figurinhas,
+    if (indiceTelaAtual == 1) {
+      return EstatisticasPage(
+        figurinhas: figurinhas,
+      );
+    }
+
+    return ConfiguracoesPage(
+      totalFigurinhas: figurinhas.length,
+      onAtualizarCatalogo: carregarFigurinhasDaApi,
+      onLimparColecao: confirmarLimpezaAlbum,
     );
   }
 
@@ -322,6 +331,11 @@ class _HomePageState extends State<HomePage> {
           icon: Icon(Icons.bar_chart_outlined),
           selectedIcon: Icon(Icons.bar_chart),
           label: 'Estatísticas',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings),
+          label: 'Config.',
         ),
       ],
     );

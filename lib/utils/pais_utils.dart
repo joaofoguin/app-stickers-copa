@@ -123,7 +123,7 @@ String? prefixoPorNomeDetectadoNoAlbum(String textoDetectado) {
     'MEXIC0': 'MÉXICO',
     'MEX1CO': 'MÉXICO',
     'MEXLCO': 'MÉXICO',
-    'MEX ICO': 'MÉXICO',
+    'MEXICANA': 'MÉXICO',
     'WE ARE MEXICO': 'MÉXICO',
 
     'SOUTH AFRICA': 'ÁFRICA DO SUL',

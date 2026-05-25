@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
 
 import '../../../models/figurinha.dart';
 import '../../../utils/pais_utils.dart';
@@ -74,6 +75,35 @@ class _ScanPageState extends State<ScanPage> {
     selecoes.sort((a, b) => a.nome.compareTo(b.nome));
 
     return selecoes;
+  }
+
+  void _girarImagem() {
+    if (_imagemBytes == null) return;
+
+    final imagemDecodificada = img.decodeImage(_imagemBytes!);
+
+    if (imagemDecodificada == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Não foi possível girar esta imagem.'),
+        ),
+      );
+      return;
+    }
+
+    final imagemRotacionada = img.copyRotate(
+      imagemDecodificada,
+      angle: 90,
+    );
+
+    final novosBytes = Uint8List.fromList(
+      img.encodeJpg(imagemRotacionada, quality: 90),
+    );
+
+    setState(() {
+      _imagemBytes = novosBytes;
+      _ultimoTextoOcr = null;
+    });
   }
 
   int _compararCodigos(String a, String b) {
@@ -446,6 +476,15 @@ class _ScanPageState extends State<ScanPage> {
               icon: const Icon(Icons.auto_awesome),
               label: const Text('Reconhecer automaticamente'),
             ),
+            
+            const SizedBox(height: 8),
+
+            OutlinedButton.icon(
+              onPressed: _carregando || !temImagem ? null : _girarImagem,
+              icon: const Icon(Icons.rotate_90_degrees_cw),
+              label: const Text('Girar imagem'),
+            ),
+            
             if (temTextoOcr) ...[
               const SizedBox(height: 8),
               TextButton.icon(
