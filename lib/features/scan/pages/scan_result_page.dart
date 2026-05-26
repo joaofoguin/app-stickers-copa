@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../theme/app_colors.dart';
 import '../models/scan_result.dart';
+import 'scan_success_page.dart';
 
 class ScanResultPage extends StatefulWidget {
   final ScanResult resultado;
@@ -24,10 +25,21 @@ class ScanResultPage extends StatefulWidget {
 class _ScanResultPageState extends State<ScanResultPage> {
   final Set<String> _figurinhasSelecionadas = {};
 
-  void _confirmarFigurinhas() {
+  Future<void> _confirmarFigurinhas() async {
     final figurinhas = _figurinhasSelecionadas.toList();
 
     figurinhas.sort(_compararCodigos);
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ScanSuccessPage(
+          totalFigurinhas: figurinhas.length,
+        ),
+      ),
+    );
+
+    if (!mounted) return;
 
     Navigator.pop(context, figurinhas);
   }

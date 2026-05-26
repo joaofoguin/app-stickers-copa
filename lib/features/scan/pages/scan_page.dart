@@ -11,6 +11,7 @@ import '../services/album_scan_service.dart';
 import '../services/web_ocr_service.dart';
 import '../../../theme/app_colors.dart';
 import 'scan_result_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ScanPage extends StatefulWidget {
   final List<Figurinha> figurinhas;
@@ -45,8 +46,32 @@ class _ScanPageState extends State<ScanPage> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _mostrarInstrucoesScan();
+      _controlarPopupInicial();
     });
+  }
+
+  Future<void> _controlarPopupInicial() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final ocultarPopup = prefs.getBool('scan_ocultar_instrucoes') ?? false;
+
+    if (ocultarPopup) return;
+
+    final totalAberturas = prefs.getInt('scan_total_aberturas') ?? 0;
+    final novoTotal = totalAberturas + 1;
+
+    await prefs.setInt('scan_total_aberturas', novoTotal);
+
+    if (!mounted) return;
+
+    _mostrarInstrucoesScan(
+      mostrarOpcaoNaoVerNovamente: novoTotal >= 3,
+    );
+  }
+
+  Future<void> _ocultarInstrucoesScan() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('scan_ocultar_instrucoes', true);
   }
 
   void _mostrarMensagem(String mensagem) {
@@ -60,7 +85,9 @@ class _ScanPageState extends State<ScanPage> {
     );
   }
 
-  void _mostrarInstrucoesScan() {
+  void _mostrarInstrucoesScan({
+    required bool mostrarOpcaoNaoVerNovamente,
+  }) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -149,6 +176,40 @@ class _ScanPageState extends State<ScanPage> {
 
                 const SizedBox(height: 24),
 
+                if (mostrarOpcaoNaoVerNovamente) ...[
+                  const SizedBox(height: 18),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: () async {
+                        await _ocultarInstrucoesScan();
+
+                        if (!mounted) return;
+
+                        Navigator.pop(context);
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.textPrimary,
+                        side: const BorderSide(
+                          color: AppColors.surfaceLight,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'NÃO VER NOVAMENTE',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                ],
+                
                 SizedBox(
                   width: double.infinity,
                   height: 54,
