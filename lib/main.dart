@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
-import 'pages/home_page.dart';
+// import 'pages/home_page.dart';
 import 'theme/app_theme.dart';
+import 'pages/splash_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +26,7 @@ class AlbumCopaApp extends StatelessWidget {
       title: 'Álbum de Seleções',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const HomePage(),
+      home: const SplashPage(),
     );
   }
 }

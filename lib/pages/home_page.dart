@@ -171,21 +171,54 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> abrirScanPage() async {
+  Future<void> abrirScan() async {
     final codigosConfirmados = await Navigator.push<List<String>>(
       context,
       MaterialPageRoute(
-        builder: (_) => ScanPage(
+        builder: (context) => ScanPage(
           figurinhas: figurinhas,
         ),
       ),
     );
 
+    if (codigosConfirmados == null || codigosConfirmados.isEmpty) return;
+
+    final codigosNormalizados = codigosConfirmados
+        .map((codigo) => codigo.toUpperCase().trim())
+        .toSet();
+
+    final figurinhasConfirmadas = figurinhas.where((figurinha) {
+      return codigosNormalizados.contains(
+        figurinha.numeroAlbum.toUpperCase().trim(),
+      );
+    }).toList();
+
+    if (figurinhasConfirmadas.isEmpty) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('NENHUMA FIGURINHA DO SCAN FOI ENCONTRADA NA COLEÇÃO'),
+        ),
+      );
+
+      return;
+    }
+
+    await colecaoStorage.marcarVariasComoTenho(figurinhasConfirmadas);
+
     if (!mounted) return;
 
-    if (codigosConfirmados != null && codigosConfirmados.isNotEmpty) {
-      marcarFigurinhasPorCodigo(codigosConfirmados);
-    }
+    setState(() {});
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '${figurinhasConfirmadas.length} FIGURINHA(S) MARCADA(S) PELO SCAN',
+        ),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 
   void trocarTela(int indice) {
@@ -339,13 +372,13 @@ class _HomePageState extends State<HomePage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                Color.fromARGB(18, 0, 0, 0),
-                Color.fromARGB(205, 0, 0, 0),
-                Color.fromARGB(255, 0, 0, 0),
+                Color(0x00000000),
+                Color(0x77000000),
+                Color(0xEE000000),
               ],
               stops: [
                 0.0,
-                0.20,
+                0.45,
                 1.0,
               ],
             ),
@@ -355,6 +388,20 @@ class _HomePageState extends State<HomePage> {
             child: construirNavigationBar(),
           ),
         ),
+        floatingActionButton: indiceTelaAtual == 0
+            ? FloatingActionButton(
+                onPressed: abrirScan,
+                backgroundColor: const Color(0xFF0A84FF),
+                foregroundColor: Colors.black,
+                elevation: 8,
+                shape: const CircleBorder(),
+                child: const Icon(
+                  Icons.document_scanner_outlined,
+                  size: 30,
+                ),
+              )
+            : null,
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }
