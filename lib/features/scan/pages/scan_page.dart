@@ -49,6 +49,17 @@ class _ScanPageState extends State<ScanPage> {
     });
   }
 
+  void _mostrarMensagem(String mensagem) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem.toUpperCase()),
+        duration: const Duration(seconds: 1),
+      ),
+    );
+  }
+
   void _mostrarInstrucoesScan() {
     showDialog(
       context: context,

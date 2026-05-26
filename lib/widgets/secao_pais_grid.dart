@@ -15,6 +15,7 @@ class SecaoPaisGrid extends StatelessWidget {
   final void Function(Figurinha figurinha, bool valor) onMarcar;
   final void Function(Figurinha figurinha) onAdicionarRepetida;
   final void Function(Figurinha figurinha) onRemoverRepetida;
+  final void Function(String mensagem) onMostrarMensagem;
 
   const SecaoPaisGrid({
     super.key,
@@ -26,6 +27,7 @@ class SecaoPaisGrid extends StatelessWidget {
     required this.onMarcar,
     required this.onAdicionarRepetida,
     required this.onRemoverRepetida,
+    required this.onMostrarMensagem,
   });
 
   void abrirAcoesFigurinha(BuildContext context, Figurinha figurinha) {
@@ -54,15 +56,7 @@ class SecaoPaisGrid extends StatelessWidget {
   void aoTocarFigurinha(BuildContext context, Figurinha figurinha) {
     if (!figurinha.tenho) {
       onMarcar(figurinha, true);
-
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${figurinha.numeroAlbum} marcada como preenchida'),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-
+      onMostrarMensagem('${figurinha.numeroAlbum} marcada como preenchida');
       return;
     }
 

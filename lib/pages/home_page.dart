@@ -19,20 +19,44 @@ class _HomePageState extends State<HomePage> {
   final FigurinhaService figurinhaService = FigurinhaService();
   final ColecaoStorage colecaoStorage = ColecaoStorage();
 
+  bool notificacaoVisivel = false;
+  String? mensagemNotificacao;
   List<Figurinha> figurinhas = [];
-
   bool carregando = true;
   String? erroCarregamento;
-
   String textoBusca = '';
   String selecaoSelecionada = 'Todas';
-
   int indiceTelaAtual = 0;
 
   @override
   void initState() {
     super.initState();
     carregarFigurinhasDaApi();
+  }
+
+  Future<void> mostrarSnackBar(String mensagem) async {
+    if (!mounted) return;
+
+    setState(() {
+      mensagemNotificacao = mensagem.toUpperCase();
+      notificacaoVisivel = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 1400));
+
+    if (!mounted) return;
+
+    setState(() {
+      notificacaoVisivel = false;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 250));
+
+    if (!mounted) return;
+
+    setState(() {
+      mensagemNotificacao = null;
+    });
   }
 
   Future<void> carregarFigurinhasDaApi() async {
@@ -105,14 +129,10 @@ class _HomePageState extends State<HomePage> {
     final totalNaoEncontradas =
         codigosNormalizados.length - figurinhasEncontradas.length;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          totalNaoEncontradas == 0
-              ? '${figurinhasEncontradas.length} figurinha(s) marcada(s) como possuída(s).'
-              : '${figurinhasEncontradas.length} marcada(s). $totalNaoEncontradas código(s) não encontrado(s).',
-        ),
-      ),
+    mostrarSnackBar(
+      totalNaoEncontradas == 0
+          ? '${figurinhasEncontradas.length} figurinha(s) marcada(s) como possuída(s).'
+          : '${figurinhasEncontradas.length} marcada(s). $totalNaoEncontradas código(s) não encontrado(s).',
     );
   }
 
@@ -196,12 +216,9 @@ class _HomePageState extends State<HomePage> {
     if (figurinhasConfirmadas.isEmpty) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('NENHUMA FIGURINHA DO SCAN FOI ENCONTRADA NA COLEÇÃO'),
-        ),
+      mostrarSnackBar(
+        'NENHUMA FIGURINHA DO SCAN FOI ENCONTRADA NA COLEÇÃO',
       );
-
       return;
     }
 
@@ -211,13 +228,8 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {});
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '${figurinhasConfirmadas.length} FIGURINHA(S) MARCADA(S) PELO SCAN',
-        ),
-        duration: const Duration(seconds: 2),
-      ),
+    mostrarSnackBar(
+      '${figurinhasConfirmadas.length} FIGURINHA(S) MARCADA(S) PELO SCAN',
     );
   }
 
@@ -300,6 +312,7 @@ class _HomePageState extends State<HomePage> {
         onAdicionarRepetida: adicionarRepetida,
         onRemoverRepetida: removerRepetida,
         onAtualizar: carregarFigurinhasDaApi,
+        onMostrarMensagem: mostrarSnackBar,
       );
     }
 
@@ -313,6 +326,7 @@ class _HomePageState extends State<HomePage> {
       totalFigurinhas: figurinhas.length,
       onAtualizarCatalogo: carregarFigurinhasDaApi,
       onLimparColecao: confirmarLimpezaAlbum,
+      onMostrarMensagem: mostrarSnackBar,
     );
   }
 
@@ -364,7 +378,72 @@ class _HomePageState extends State<HomePage> {
         extendBody: true,
         body: SafeArea(
           bottom: false,
-          child: construirBody(),
+          child: Stack(
+            children: [
+              construirBody(),
+
+              AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
+                left: 16,
+                right: 16,
+                bottom: notificacaoVisivel ? 88 : 40,
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 200),
+                    opacity: notificacaoVisivel ? 1 : 0,
+                    child: mensagemNotificacao == null
+                        ? const SizedBox.shrink()
+                        : Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 14,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF555555),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(120),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              mensagemNotificacao!,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+
+              if (indiceTelaAtual == 0)
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.easeOut,
+                  right: 16,
+                  bottom: notificacaoVisivel ? 158 : 88,
+                  child: FloatingActionButton(
+                    onPressed: abrirScan,
+                    backgroundColor: const Color(0xFF0A84FF),
+                    foregroundColor: Colors.black,
+                    elevation: 8,
+                    shape: const CircleBorder(),
+                    child: const Icon(
+                      Icons.document_scanner_outlined,
+                      size: 30,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
@@ -388,20 +467,6 @@ class _HomePageState extends State<HomePage> {
             child: construirNavigationBar(),
           ),
         ),
-        floatingActionButton: indiceTelaAtual == 0
-            ? FloatingActionButton(
-                onPressed: abrirScan,
-                backgroundColor: const Color(0xFF0A84FF),
-                foregroundColor: Colors.black,
-                elevation: 8,
-                shape: const CircleBorder(),
-                child: const Icon(
-                  Icons.document_scanner_outlined,
-                  size: 30,
-                ),
-              )
-            : null,
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }

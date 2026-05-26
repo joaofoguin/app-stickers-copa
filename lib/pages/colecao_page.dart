@@ -23,6 +23,7 @@ class ColecaoPage extends StatelessWidget {
   final void Function(Figurinha figurinha, bool valor) onMarcar;
   final void Function(Figurinha figurinha) onAdicionarRepetida;
   final void Function(Figurinha figurinha) onRemoverRepetida;
+  final void Function(String mensagem) onMostrarMensagem;
   final Future<void> Function() onAtualizar;
 
   const ColecaoPage({
@@ -36,6 +37,7 @@ class ColecaoPage extends StatelessWidget {
     required this.onAdicionarRepetida,
     required this.onRemoverRepetida,
     required this.onAtualizar,
+    required this.onMostrarMensagem,
   });
 
   int get totalTenho {
@@ -204,6 +206,7 @@ class ColecaoPage extends StatelessWidget {
           onMarcar: onMarcar,
           onAdicionarRepetida: onAdicionarRepetida,
           onRemoverRepetida: onRemoverRepetida,
+          onMostrarMensagem: onMostrarMensagem,
         );
       }).toList(),
     );

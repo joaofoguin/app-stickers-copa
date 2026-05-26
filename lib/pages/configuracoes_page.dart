@@ -6,12 +6,14 @@ class ConfiguracoesPage extends StatelessWidget {
   final Future<void> Function() onAtualizarCatalogo;
   final Future<void> Function() onLimparColecao;
   final int totalFigurinhas;
+  final void Function(String mensagem) onMostrarMensagem;
 
   const ConfiguracoesPage({
     super.key,
     required this.onAtualizarCatalogo,
     required this.onLimparColecao,
     required this.totalFigurinhas,
+    required this.onMostrarMensagem,
   });
 
   Future<void> atualizarCatalogo(BuildContext context) async {
@@ -19,12 +21,7 @@ class ConfiguracoesPage extends StatelessWidget {
 
     if (!context.mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('CATÁLOGO ATUALIZADO'),
-        duration: Duration(seconds: 1),
-      ),
-    );
+    onMostrarMensagem('CATÁLOGO ATUALIZADO');
   }
 
   Future<void> confirmarLimpeza(BuildContext context) async {
@@ -71,12 +68,7 @@ class ConfiguracoesPage extends StatelessWidget {
   }
 
   void mostrarMensagemEmBreve(BuildContext context, String titulo) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$titulo EM BREVE'),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    onMostrarMensagem('$titulo EM BREVE');
   }
 
   @override

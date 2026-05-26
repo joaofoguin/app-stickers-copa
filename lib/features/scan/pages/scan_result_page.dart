@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../theme/app_colors.dart';
 import '../models/scan_result.dart';
 
 class ScanResultPage extends StatefulWidget {
@@ -37,9 +38,11 @@ class _ScanResultPageState extends State<ScanResultPage> {
         ..clear()
         ..addAll(
           widget.resultado.codigosDetectados.where((codigo) {
-            return !widget.codigosJaPossuidos.contains(
-              codigo.toUpperCase().trim(),
-            );
+            final normalizado = codigo.toUpperCase().trim();
+
+            return !widget.codigosJaPossuidos.contains(normalizado);
+          }).map((codigo) {
+            return codigo.toUpperCase().trim();
           }),
         );
     });
@@ -76,191 +79,215 @@ class _ScanResultPageState extends State<ScanResultPage> {
     return numeroA.compareTo(numeroB);
   }
 
+  String _prefixoCodigo(String codigo) {
+    final match = RegExp(r'^([A-Z]+)').firstMatch(codigo.toUpperCase().trim());
+
+    return match?.group(1) ?? codigo.toUpperCase().trim();
+  }
+
+  String _numeroCodigo(String codigo) {
+    final match = RegExp(r'(\d+)').firstMatch(codigo.toUpperCase().trim());
+
+    return match?.group(1) ?? codigo.toUpperCase().trim();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final codigos = widget.resultado.codigosDetectados;
+    final codigos = [...widget.resultado.codigosDetectados];
+    codigos.sort(_compararCodigos);
+
     final encontrouCodigos = codigos.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Confirmar figurinhas'),
-      ),
+      backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              if (widget.imagemBytes != null) ...[
-                SizedBox(
-                  height: 190,
-                  width: double.infinity,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.memory(
-                      widget.imagemBytes!,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              _ResumoScanCard(
-                totalCodigos: codigos.length,
-                totalSelecionadas: _figurinhasSelecionadas.length,
-              ),
-              const SizedBox(height: 12),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Toque nas figurinhas que estão coladas no álbum:',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              if (encontrouCodigos)
-                Row(
-                  children: [
-                    TextButton.icon(
-                      onPressed: _selecionarTodas,
-                      icon: const Icon(Icons.select_all),
-                      label: const Text('Todas'),
-                    ),
-                    TextButton.icon(
-                      onPressed: _limparSelecao,
-                      icon: const Icon(Icons.clear),
-                      label: const Text('Limpar'),
-                    ),
-                  ],
-                ),
-              Expanded(
-                child: encontrouCodigos
-                    ? GridView.builder(
-                        itemCount: codigos.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 110,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 1.35,
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.chevron_left,
+                          color: AppColors.textPrimary,
+                          size: 32,
                         ),
-                        itemBuilder: (context, index) {
-                          final codigo = codigos[index];
-                          final codigoNormalizado = codigo.toUpperCase().trim();
+                        Text(
+                          'VOLTAR',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                          final jaPossui = widget.codigosJaPossuidos.contains(codigoNormalizado);
-                          final selecionada = jaPossui || _figurinhasSelecionadas.contains(codigoNormalizado);
-                          return _CodigoFigurinhaTile(
-                            codigo: codigo,
-                            selecionada: selecionada,
-                            jaPossui: jaPossui,
-                            onTap: jaPossui
-                                ? null
-                                : () {
-                                    setState(() {
-                                      if (selecionada) {
-                                        _figurinhasSelecionadas.remove(codigoNormalizado);
-                                      } else {
-                                        _figurinhasSelecionadas.add(codigoNormalizado);
-                                      }
-                                    });
-                                  },
-                          );
-                        },
-                      )
-                    : const Center(
-                        child: Text(
-                          'Nenhum código foi encontrado.\n\nVolte e escolha uma seleção ou digite códigos como MEX1, MEX2 ou BRA10.',
-                          textAlign: TextAlign.center,
+                  const SizedBox(height: 24),
+
+                  if (widget.imagemBytes != null) ...[
+                    Container(
+                      height: 230,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(22),
+                        border: Border.all(
+                          color: AppColors.surfaceLight,
+                          width: 1,
                         ),
                       ),
-              ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _figurinhasSelecionadas.isEmpty
-                      ? null
-                      : _confirmarFigurinhas,
-                  icon: const Icon(Icons.check),
-                  label: Text(
-                    'Confirmar ${_figurinhasSelecionadas.length} figurinha(s)',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Image.memory(
+                          widget.imagemBytes!,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  _ResumoScanCard(
+                    totalSelecionadas: _figurinhasSelecionadas.length,
                   ),
-                ),
+
+                  const SizedBox(height: 16),
+
+                  if (encontrouCodigos)
+                    Row(
+                      children: [
+                        _AcaoTextoScan(
+                          icone: Icons.select_all,
+                          texto: 'TODAS',
+                          onTap: _selecionarTodas,
+                        ),
+                        const SizedBox(width: 18),
+                        _AcaoTextoScan(
+                          icone: Icons.clear,
+                          texto: 'LIMPAR',
+                          onTap: _limparSelecao,
+                        ),
+                      ],
+                    ),
+
+                  const SizedBox(height: 18),
+
+                  if (encontrouCodigos)
+                    GridView.builder(
+                      itemCount: codigos.length,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 5,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 1.05,
+                      ),
+                      itemBuilder: (context, index) {
+                        final codigo = codigos[index];
+                        final codigoNormalizado = codigo.toUpperCase().trim();
+
+                        final jaPossui = widget.codigosJaPossuidos.contains(
+                          codigoNormalizado,
+                        );
+
+                        final selecionada =
+                            _figurinhasSelecionadas.contains(codigoNormalizado);
+
+                        return _CodigoFigurinhaTile(
+                          prefixo: _prefixoCodigo(codigo),
+                          numero: _numeroCodigo(codigo),
+                          selecionada: selecionada,
+                          jaPossui: jaPossui,
+                          onTap: jaPossui
+                              ? null
+                              : () {
+                                  setState(() {
+                                    if (selecionada) {
+                                      _figurinhasSelecionadas.remove(
+                                        codigoNormalizado,
+                                      );
+                                    } else {
+                                      _figurinhasSelecionadas.add(
+                                        codigoNormalizado,
+                                      );
+                                    }
+                                  });
+                                },
+                        );
+                      },
+                    )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.only(top: 80),
+                      child: Text(
+                        'NENHUM CÓDIGO FOI ENCONTRADO.\n\nVOLTE E ESCOLHA UMA SELEÇÃO OU DIGITE CÓDIGOS COMO MEX1, MEX2 OU BRA10.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          height: 1.25,
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CodigoFigurinhaTile extends StatelessWidget {
-  final String codigo;
-  final bool selecionada;
-  final bool jaPossui;
-  final VoidCallback? onTap;
-
-  const _CodigoFigurinhaTile({
-    required this.codigo,
-    required this.selecionada,
-    required this.jaPossui, 
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Material(
-      color: selecionada
-          ? colorScheme.primaryContainer
-          : colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: selecionada
-                  ? colorScheme.primary
-                  : colorScheme.outlineVariant,
-              width: selecionada ? 2 : 1,
             ),
-          ),
-          padding: const EdgeInsets.all(8),
-          child: Stack(
-            children: [
-              Center(
-                child: Text(
-                  codigo,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: selecionada
-                        ? colorScheme.onPrimaryContainer
-                        : colorScheme.onSurfaceVariant,
+
+            Container(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x00000000),
+                    Color(0xCC000000),
+                    Color(0xFF000000),
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: FilledButton(
+                    onPressed: _figurinhasSelecionadas.isEmpty
+                        ? null
+                        : _confirmarFigurinhas,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.black,
+                      disabledBackgroundColor: AppColors.surface,
+                      disabledForegroundColor: AppColors.textSecondary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: Text(
+                      'CONFIRMAR ${_figurinhasSelecionadas.length} FIGURINHA(S)',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
               ),
-              if (selecionada)
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Icon(
-                    Icons.check_circle,
-                    color: colorScheme.primary,
-                    size: 22,
-                  ),
-                ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -268,43 +295,193 @@ class _CodigoFigurinhaTile extends StatelessWidget {
 }
 
 class _ResumoScanCard extends StatelessWidget {
-  final int totalCodigos;
   final int totalSelecionadas;
 
   const _ResumoScanCard({
-    required this.totalCodigos,
     required this.totalSelecionadas,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            const Icon(Icons.checklist_outlined, size: 32),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$totalCodigos código(s) na página',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '$totalSelecionadas selecionada(s) como possuída(s)',
-                  ),
-                ],
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceLight,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 18,
+        vertical: 18,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_outline,
+            color: AppColors.textPrimary,
+            size: 28,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              '$totalSelecionadas SELECIONADA(S) COMO POSSUÍDA(S)',
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AcaoTextoScan extends StatelessWidget {
+  final IconData icone;
+  final String texto;
+  final VoidCallback onTap;
+
+  const _AcaoTextoScan({
+    required this.icone,
+    required this.texto,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icone,
+            color: AppColors.textPrimary,
+            size: 18,
+          ),
+          const SizedBox(width: 5),
+          Text(
+            texto,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CodigoFigurinhaTile extends StatelessWidget {
+  final String prefixo;
+  final String numero;
+  final bool selecionada;
+  final bool jaPossui;
+  final VoidCallback? onTap;
+
+  const _CodigoFigurinhaTile({
+    required this.prefixo,
+    required this.numero,
+    required this.selecionada,
+    required this.jaPossui,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final marcadaVisualmente = selecionada || jaPossui;
+
+    final backgroundColor = marcadaVisualmente
+        ? const Color(0xFFE4F6E7)
+        : const Color(0xFFBDBDBD);
+
+    final borderColor = jaPossui
+        ? AppColors.surfaceLight
+        : selecionada
+            ? AppColors.successGreen
+            : Colors.transparent;
+
+    return Opacity(
+      opacity: jaPossui ? 0.55 : 1,
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: borderColor,
+              width: marcadaVisualmente ? 2.2 : 0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(80),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 5),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        prefixo.toUpperCase(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        numero,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 27,
+                          fontWeight: FontWeight.w500,
+                          height: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              if (marcadaVisualmente)
+                Positioned(
+                  left: 5,
+                  bottom: 5,
+                  child: Container(
+                    width: 17,
+                    height: 17,
+                    decoration: BoxDecoration(
+                      color: jaPossui
+                          ? AppColors.surfaceLight
+                          : AppColors.successGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      jaPossui ? Icons.lock : Icons.check,
+                      size: 11,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
