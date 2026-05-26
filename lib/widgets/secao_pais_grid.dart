@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/figurinha.dart';
+import '../theme/app_colors.dart';
 import '../utils/pais_utils.dart';
 import 'figurinha_bottom_sheet.dart';
 import 'figurinha_grid_tile.dart';
@@ -32,11 +33,7 @@ class SecaoPaisGrid extends StatelessWidget {
       context: context,
       showDragHandle: false,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(28),
-        ),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return FigurinhaBottomSheet(
           figurinha: figurinha,
@@ -58,6 +55,7 @@ class SecaoPaisGrid extends StatelessWidget {
     if (!figurinha.tenho) {
       onMarcar(figurinha, true);
 
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${figurinha.numeroAlbum} marcada como preenchida'),
@@ -80,15 +78,14 @@ class SecaoPaisGrid extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          margin: const EdgeInsets.only(top: 10, bottom: 12),
+          margin: const EdgeInsets.fromLTRB(8, 14, 8, 14),
           padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 14,
+            horizontal: 18,
+            vertical: 16,
           ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
+            color: AppColors.surfaceLight,
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Row(
             children: [
@@ -96,32 +93,28 @@ class SecaoPaisGrid extends StatelessWidget {
                 bandeira,
                 style: const TextStyle(fontSize: 28),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '$pais ($sigla)',
+                  '$pais ($sigla)'.toUpperCase(),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.2,
+                    height: 1,
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.grey.shade100,
-                ),
-                child: Text(
-                  resumo,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                resumo.toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -132,11 +125,12 @@ class SecaoPaisGrid extends StatelessWidget {
           itemCount: figurinhas.length,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 5,
-            crossAxisSpacing: 12,
+            crossAxisSpacing: 10,
             mainAxisSpacing: 12,
-            childAspectRatio: 1,
+            childAspectRatio: 1.05,
           ),
           itemBuilder: (context, index) {
             final figurinha = figurinhas[index];
@@ -146,11 +140,14 @@ class SecaoPaisGrid extends StatelessWidget {
               onTap: () {
                 aoTocarFigurinha(context, figurinha);
               },
+              onLongPress: () {
+                abrirAcoesFigurinha(context, figurinha);
+              },
             );
           },
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 30),
       ],
     );
   }

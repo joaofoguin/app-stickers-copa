@@ -115,6 +115,24 @@ const Map<String, String> nomesInglesParaNomeApp = {
   'COCA-COLA': 'COCA-COLA',
 };
 
+String? bandeiraAssetPais(String nome) {
+  final nomeNormalizado = nome.trim().toUpperCase();
+
+  const bandeiras = {
+    'MÉXICO': '../assets/flags/mex.png',
+    'ÁFRICA DO SUL': '../assets/flags/rsa.png',
+    'REPÚBLICA DA CORÉIA': '../assets/flags/kor.png',
+    'REPÚBLICA TCHECA': '../assets/flags/cze.png',
+    'CANADÁ': '../assets/flags/can.png',
+    'BOSNIA E HERZEGOVINA': '../assets/flags/bih.png',
+    'QATAR': '../assets/flags/qat.png',
+    'SUIÇA': '../assets/flags/sui.png',
+    'BRASIL': '../assets/flags/bra.png',
+  };
+
+  return bandeiras[nomeNormalizado];
+}
+
 String? prefixoPorNomeDetectadoNoAlbum(String textoDetectado) {
   final textoNormalizado = normalizarTextoPais(textoDetectado);
 

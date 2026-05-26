@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
+import '../utils/pais_utils.dart';
+
 class SelecaoStoryItem extends StatelessWidget {
   final String nome;
   final int total;
@@ -23,19 +26,24 @@ class SelecaoStoryItem extends StatelessWidget {
 
   String get sigla {
     if (nome == 'Todas') return 'ALL';
+    return nomeReduzidoPais(nome);
+  }
 
-    final limpo = nome.trim();
+  String? get bandeiraAsset {
+    if (nome == 'Todas') return null;
+    return bandeiraAssetPais(nome);
+  }
 
-    if (limpo.length <= 3) {
-      return limpo.toUpperCase();
-    }
-
-    return limpo.substring(0, 3).toUpperCase();
+  String get nomeExibicao {
+    if (nome == 'Todas') return 'TODAS';
+    return sigla.toUpperCase();
   }
 
   @override
   Widget build(BuildContext context) {
-    final cor = selecionado ? Colors.green : Colors.grey;
+    final corProgresso = selecionado
+        ? AppColors.successGreen
+        : AppColors.primaryBlue;
 
     return GestureDetector(
       onTap: onTap,
@@ -48,57 +56,72 @@ class SelecaoStoryItem extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 62,
-                  height: 62,
+                  width: 66,
+                  height: 66,
                   child: CircularProgressIndicator(
                     value: progresso,
                     strokeWidth: 4,
-                    backgroundColor: Colors.grey.shade300,
+                    backgroundColor: AppColors.surfaceLight,
+                    valueColor: AlwaysStoppedAnimation<Color>(corProgresso),
                   ),
                 ),
                 Container(
-                  width: 52,
-                  height: 52,
+                  width: 56,
+                  height: 56,
                   decoration: BoxDecoration(
                     color: selecionado
-                        ? Colors.green.shade100
-                        : Colors.grey.shade100,
+                        ? const Color(0xFFB9F6C3)
+                        : const Color(0xFFEDEDED),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: cor,
-                      width: selecionado ? 3 : 1,
+                      color: AppColors.background,
+                      width: 2,
                     ),
                   ),
-                  child: Center(
-                    child: Text(
-                      sigla,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: selecionado
-                            ? Colors.green.shade900
-                            : Colors.black87,
-                      ),
-                    ),
+                  child: ClipOval(
+                    child: bandeiraAsset != null
+                        ? Image.asset(
+                            bandeiraAsset!,
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                          )
+                        : Center(
+                            child: Text(
+                              sigla,
+                              style: const TextStyle(
+                                color: AppColors.textDark,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
-              nome,
+              nomeExibicao,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: selecionado ? FontWeight.bold : FontWeight.normal,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                height: 1,
               ),
             ),
+            const SizedBox(height: 4),
             Text(
               '$tenho/$total',
+              maxLines: 1,
               style: const TextStyle(
-                fontSize: 11,
-                color: Colors.black54,
+                color: AppColors.textSecondary,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                height: 1,
               ),
             ),
           ],

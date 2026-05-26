@@ -197,8 +197,10 @@ class _HomePageState extends State<HomePage> {
   Widget construirTelaErro() {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Álbum de Seleções'),
-        centerTitle: true,
+        toolbarHeight: 0,
+        elevation: 0,
+        backgroundColor: Colors.black,
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Padding(
@@ -238,46 +240,10 @@ class _HomePageState extends State<HomePage> {
 
   PreferredSizeWidget construirAppBar() {
     return AppBar(
-      title: const Text('Álbum de Seleções'),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          tooltip: 'Escanear página',
-          icon: const Icon(Icons.document_scanner_outlined),
-          onPressed: abrirScanPage,
-        ),
-        PopupMenuButton<String>(
-          tooltip: 'Mais opções',
-          onSelected: (valor) {
-            if (valor == 'limpar') {
-              confirmarLimpezaAlbum();
-            }
-          },
-          itemBuilder: (context) {
-            return const [
-              PopupMenuItem(
-                value: 'limpar',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_outline),
-                    SizedBox(width: 12),
-                    Text('Limpar coleção'),
-                  ],
-                ),
-              ),
-            ];
-          },
-        ),
-      ],
-      bottom: indiceTelaAtual == 0
-          ? const TabBar(
-              tabs: [
-                Tab(text: 'Todas'),
-                Tab(text: 'Faltantes'),
-                Tab(text: 'Repetidas'),
-              ],
-            )
-          : null,
+      toolbarHeight: 0,
+      elevation: 0,
+      backgroundColor: Colors.black,
+      automaticallyImplyLeading: false,
     );
   }
 
@@ -319,23 +285,27 @@ class _HomePageState extends State<HomePage> {
 
   NavigationBar construirNavigationBar() {
     return NavigationBar(
+      height: 74,
+      backgroundColor: Colors.transparent,
+      indicatorColor: Colors.transparent,
       selectedIndex: indiceTelaAtual,
       onDestinationSelected: trocarTela,
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       destinations: const [
         NavigationDestination(
           icon: Icon(Icons.collections_bookmark_outlined),
           selectedIcon: Icon(Icons.collections_bookmark),
-          label: 'Coleção',
+          label: 'COLEÇÃO',
         ),
         NavigationDestination(
           icon: Icon(Icons.bar_chart_outlined),
           selectedIcon: Icon(Icons.bar_chart),
-          label: 'Estatísticas',
+          label: 'ESTATÍSTICAS',
         ),
         NavigationDestination(
           icon: Icon(Icons.settings_outlined),
           selectedIcon: Icon(Icons.settings),
-          label: 'Config.',
+          label: 'CONFIG.',
         ),
       ],
     );
@@ -358,9 +328,33 @@ class _HomePageState extends State<HomePage> {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: construirAppBar(),
-        body: construirBody(),
-        bottomNavigationBar: construirNavigationBar(),
+        extendBody: true,
+        body: SafeArea(
+          bottom: false,
+          child: construirBody(),
+        ),
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color.fromARGB(18, 0, 0, 0),
+                Color.fromARGB(205, 0, 0, 0),
+                Color.fromARGB(255, 0, 0, 0),
+              ],
+              stops: [
+                0.0,
+                0.20,
+                1.0,
+              ],
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: construirNavigationBar(),
+          ),
+        ),
       ),
     );
   }

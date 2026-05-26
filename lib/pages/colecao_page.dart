@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../models/figurinha.dart';
 import '../utils/album_sort.dart';
+import '../widgets/colecao_tab_selector.dart';
 import '../widgets/secao_pais_grid.dart';
 import '../widgets/selecao_story_item.dart';
 
@@ -145,6 +146,26 @@ class ColecaoPage extends StatelessWidget {
     }
   }
 
+  Widget construirTabSelector() {
+    return Builder(
+      builder: (context) {
+        final tabController = DefaultTabController.of(context);
+
+        return AnimatedBuilder(
+          animation: tabController,
+          builder: (context, _) {
+            return ColecaoTabSelector(
+              indiceAtual: tabController.index,
+              onChanged: (indice) {
+                tabController.animateTo(indice);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget construirGradeAgrupada(
     BuildContext context,
     List<Figurinha> lista, {
@@ -154,7 +175,7 @@ class ColecaoPage extends StatelessWidget {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: const [
-          SizedBox(height: 200),
+          SizedBox(height: 96),
           Center(
             child: Text(
               'Nenhuma figurinha encontrada',
@@ -169,7 +190,7 @@ class ColecaoPage extends StatelessWidget {
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 24),
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 170),
       children: grupos.entries.map((entry) {
         final pais = entry.key;
         final itens = entry.value;
@@ -192,25 +213,26 @@ class ColecaoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        construirTabSelector(),
+
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.fromLTRB(22, 16, 22, 8),
           child: TextField(
             decoration: InputDecoration(
-              labelText: 'Buscar figurinha',
-              hintText: 'Digite número, país ou nome',
+              hintText: 'BUSCAR FIGURINHA',
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
             ),
             onChanged: onBuscaChanged,
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
 
         SizedBox(
-          height: 104,
+          height: 108,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
