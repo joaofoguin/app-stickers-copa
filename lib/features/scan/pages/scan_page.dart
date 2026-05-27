@@ -1,19 +1,20 @@
 import 'dart:typed_data';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../models/figurinha.dart';
+import '../../../theme/app_colors.dart';
 import '../../../utils/pais_utils.dart';
 import '../models/scan_result.dart';
 import '../services/album_scan_service.dart';
+import '../services/mobile_ocr_service.dart';
+import '../services/temp_image_saver.dart';
 import '../services/web_ocr_service.dart';
-import '../../../theme/app_colors.dart';
 import 'scan_result_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class ScanPage extends StatefulWidget {
   final List<Figurinha> figurinhas;
@@ -31,6 +32,7 @@ class _ScanPageState extends State<ScanPage> {
   final ImagePicker _picker = ImagePicker();
   final AlbumScanService _scanService = AlbumScanService();
   final WebOcrService _webOcrService = WebOcrService();
+  final MobileOcrService _mobileOcrService = MobileOcrService();
 
   final TextEditingController _prefixoController = TextEditingController();
   final TextEditingController _inicioController =
@@ -43,6 +45,10 @@ class _ScanPageState extends State<ScanPage> {
   Uint8List? _imagemBytes;
   String? _ultimoTextoOcr;
   String? _imagemPath;
+
+  late final List<_SelecaoScan> _selecoes = _montarSelecoes();
+
+  _SelecaoScan? _selecaoSelecionada;
 
   @override
   void initState() {
@@ -83,7 +89,7 @@ class _ScanPageState extends State<ScanPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensagem.toUpperCase()),
-        duration: const Duration(seconds: 1),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
@@ -115,9 +121,7 @@ class _ScanPageState extends State<ScanPage> {
                     height: 1,
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 const Text(
                   'TIRE OU ESCOLHA UMA FOTO DA PÁGINA INTEIRA, COM BOA ILUMINAÇÃO E OS TEXTOS NA HORIZONTAL.',
                   style: TextStyle(
@@ -127,9 +131,7 @@ class _ScanPageState extends State<ScanPage> {
                     height: 1.25,
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
                 const Text(
                   'O APP TENTARÁ RECONHECER A SELEÇÃO AUTOMATICAMENTE. DEPOIS, VOCÊ CONFIRMA QUAIS FIGURINHAS ESTÃO COLADAS ANTES DE SALVAR.',
                   style: TextStyle(
@@ -139,9 +141,7 @@ class _ScanPageState extends State<ScanPage> {
                     height: 1.25,
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 const Text(
                   'DICAS:',
                   style: TextStyle(
@@ -150,9 +150,7 @@ class _ScanPageState extends State<ScanPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 const Text(
                   '• DEIXE A PÁGINA RETA\n'
                   '• EVITE SOMBRAS E REFLEXOS\n'
@@ -164,11 +162,9 @@ class _ScanPageState extends State<ScanPage> {
                     height: 1.35,
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 const Text(
-                  'O RECONHECIMENTO PRECISA DE INTERNET. SE FALHAR, ESCOLHA A SELEÇÃO MANUALMENTE.',
+                  'O RECONHECIMENTO USA OCR NO CELULAR E NA WEB. SE FALHAR, ESCOLHA A SELEÇÃO MANUALMENTE.',
                   style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 14,
@@ -176,11 +172,8 @@ class _ScanPageState extends State<ScanPage> {
                     height: 1.25,
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 if (mostrarOpcaoNaoVerNovamente) ...[
-                  const SizedBox(height: 18),
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -212,7 +205,6 @@ class _ScanPageState extends State<ScanPage> {
                   ),
                   const SizedBox(height: 18),
                 ],
-                
                 SizedBox(
                   width: double.infinity,
                   height: 54,
@@ -243,10 +235,6 @@ class _ScanPageState extends State<ScanPage> {
       },
     );
   }
-
-  late final List<_SelecaoScan> _selecoes = _montarSelecoes();
-
-  _SelecaoScan? _selecaoSelecionada;
 
   List<_SelecaoScan> _montarSelecoes() {
     final selecoes = <_SelecaoScan>[];
@@ -280,39 +268,6 @@ class _ScanPageState extends State<ScanPage> {
     selecoes.sort((a, b) => a.nome.compareTo(b.nome));
 
     return selecoes;
-  }
-
-  Future<void> _girarImagem() async {
-    if (_imagemBytes == null) return;
-
-    final imagemDecodificada = img.decodeImage(_imagemBytes!);
-
-    if (imagemDecodificada == null) {
-      _mostrarMensagem('Não foi possível girar esta imagem.');
-      return;
-    }
-
-    final imagemRotacionada = img.copyRotate(
-      imagemDecodificada,
-      angle: 90,
-    );
-
-    final novosBytes = Uint8List.fromList(
-      img.encodeJpg(imagemRotacionada, quality: 90),
-    );
-
-    final diretorio = await getTemporaryDirectory();
-    final arquivo = File(
-      '${diretorio.path}/scan_rotacionado_${DateTime.now().millisecondsSinceEpoch}.jpg',
-    );
-
-    await arquivo.writeAsBytes(novosBytes, flush: true);
-
-    setState(() {
-      _imagemBytes = novosBytes;
-      _imagemPath = arquivo.path;
-      _ultimoTextoOcr = null;
-    });
   }
 
   int _compararCodigos(String a, String b) {
@@ -353,7 +308,7 @@ class _ScanPageState extends State<ScanPage> {
 
     setState(() {
       _imagemBytes = bytes;
-      _imagemPath = imagem.path;
+      _imagemPath = kIsWeb ? null : imagem.path;
       _ultimoTextoOcr = null;
     });
   }
@@ -366,13 +321,58 @@ class _ScanPageState extends State<ScanPage> {
     await _obterImagem(ImageSource.camera);
   }
 
+  Future<void> _girarImagem() async {
+    if (_imagemBytes == null) return;
+
+    final imagemDecodificada = img.decodeImage(_imagemBytes!);
+
+    if (imagemDecodificada == null) {
+      _mostrarMensagem('Não foi possível girar esta imagem.');
+      return;
+    }
+
+    final imagemRotacionada = img.copyRotate(
+      imagemDecodificada,
+      angle: 90,
+    );
+
+    final novosBytes = Uint8List.fromList(
+      img.encodeJpg(imagemRotacionada, quality: 90),
+    );
+
+    final novoPath = kIsWeb
+        ? null
+        : await salvarImagemTemporaria(
+            novosBytes,
+            prefixo: 'scan_rotacionado',
+          );
+
+    setState(() {
+      _imagemBytes = novosBytes;
+      _imagemPath = novoPath;
+      _ultimoTextoOcr = null;
+    });
+  }
+
+  Future<String> _reconhecerTextoDaImagem() async {
+    if (kIsWeb) {
+      if (_imagemBytes == null) {
+        throw Exception('Imagem não carregada.');
+      }
+
+      return _webOcrService.reconhecerTexto(_imagemBytes!);
+    }
+
+    if (_imagemPath == null || _imagemPath!.isEmpty) {
+      throw Exception('Caminho da imagem não encontrado.');
+    }
+
+    return _mobileOcrService.reconhecerTexto(_imagemPath!);
+  }
+
   Future<void> _reconhecerAutomaticamente() async {
     if (_imagemBytes == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Escolha uma imagem primeiro.'),
-        ),
-      );
+      _mostrarMensagem('Escolha uma imagem primeiro.');
       return;
     }
 
@@ -381,10 +381,7 @@ class _ScanPageState extends State<ScanPage> {
     });
 
     try {
-      final textoExtraido = await _webOcrService.reconhecerTexto(
-        _imagemBytes!,
-        imagePath: _imagemPath,
-      );
+      final textoExtraido = await _reconhecerTextoDaImagem();
 
       final resultado = _scanService.processarTextoExtraido(textoExtraido);
       final prefixoDetectado =
@@ -408,12 +405,8 @@ class _ScanPageState extends State<ScanPage> {
 
           if (!mounted) return;
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Seleção detectada: ${selecao.nome}. Códigos carregados da API.',
-              ),
-            ),
+          _mostrarMensagem(
+            'Seleção detectada: ${selecao.nome}. Códigos carregados da API.',
           );
 
           return;
@@ -434,12 +427,8 @@ class _ScanPageState extends State<ScanPage> {
 
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Prefixo detectado: $prefixoDetectado. Códigos gerados automaticamente.',
-            ),
-          ),
+        _mostrarMensagem(
+          'Prefixo detectado: $prefixoDetectado. Códigos gerados automaticamente.',
         );
 
         return;
@@ -452,12 +441,8 @@ class _ScanPageState extends State<ScanPage> {
 
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${resultado.codigosDetectados.length} código(s) válido(s) reconhecido(s). Confira antes de continuar.',
-            ),
-          ),
+        _mostrarMensagem(
+          '${resultado.codigosDetectados.length} código(s) válido(s) reconhecido(s). Confira antes de continuar.',
         );
 
         return;
@@ -465,21 +450,17 @@ class _ScanPageState extends State<ScanPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Não consegui reconhecer com segurança. Escolha a seleção manualmente.',
-          ),
-        ),
+      _mostrarMensagem(
+        'Não consegui reconhecer com segurança. Escolha a seleção manualmente.',
       );
     } catch (erro) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro no reconhecimento automático: $erro'),
-        ),
+      _mostrarMensagem(
+        'Não foi possível reconhecer automaticamente. Escolha a seleção manualmente.',
       );
+
+      debugPrint('Erro no reconhecimento automático: $erro');
     } finally {
       if (mounted) {
         setState(() {
@@ -561,11 +542,7 @@ class _ScanPageState extends State<ScanPage> {
     final texto = _codigosController.text.trim();
 
     if (texto.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Gere, digite ou reconheça ao menos um código.'),
-        ),
-      );
+      _mostrarMensagem('Gere, digite ou reconheça ao menos um código.');
       return;
     }
 
@@ -603,11 +580,9 @@ class _ScanPageState extends State<ScanPage> {
     } catch (erro) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erro ao analisar códigos: $erro'),
-        ),
-      );
+      _mostrarMensagem('Erro ao analisar códigos.');
+
+      debugPrint('Erro ao analisar códigos: $erro');
     } finally {
       if (mounted) {
         setState(() {
@@ -651,6 +626,7 @@ class _ScanPageState extends State<ScanPage> {
     _codigosController.dispose();
     _scanService.dispose();
     _webOcrService.dispose();
+    _mobileOcrService.dispose();
     super.dispose();
   }
 
@@ -691,9 +667,7 @@ class _ScanPageState extends State<ScanPage> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 28),
-
                 Container(
                   height: 270,
                   width: double.infinity,
@@ -716,41 +690,33 @@ class _ScanPageState extends State<ScanPage> {
                         )
                       : const _ScanPlaceholderNovo(),
                 ),
-
                 const SizedBox(height: 22),
-
                 _ScanButton(
                   label: temImagem ? 'TROCAR IMAGEM' : 'TIRAR FOTO',
                   icon: Icons.photo_camera_outlined,
                   primary: true,
                   onPressed: _carregando ? null : _tirarFoto,
                 ),
-
                 const SizedBox(height: 12),
-
                 _ScanButton(
                   label: 'IMPORTAR DA GALERIA',
                   icon: Icons.photo_library_outlined,
                   onPressed: _carregando ? null : _selecionarImagem,
                 ),
-
                 const SizedBox(height: 12),
-
                 _ScanButton(
                   label: 'GIRAR IMAGEM',
                   icon: Icons.rotate_90_degrees_cw,
                   onPressed: _carregando || !temImagem ? null : _girarImagem,
                 ),
-
                 const SizedBox(height: 12),
-
                 _ScanButton(
                   label: 'RECONHECER AUTOMATICAMENTE',
                   icon: Icons.auto_awesome,
-                  onPressed:
-                      _carregando || !temImagem ? null : _reconhecerAutomaticamente,
+                  onPressed: _carregando || !temImagem
+                      ? null
+                      : _reconhecerAutomaticamente,
                 ),
-
                 if (temTextoOcr) ...[
                   const SizedBox(height: 12),
                   _ScanButton(
@@ -759,9 +725,7 @@ class _ScanPageState extends State<ScanPage> {
                     onPressed: _mostrarTextoOcr,
                   ),
                 ],
-
                 const SizedBox(height: 28),
-
                 const Text(
                   'SELEÇÃO IDENTIFICADA',
                   style: TextStyle(
@@ -771,9 +735,7 @@ class _ScanPageState extends State<ScanPage> {
                     height: 1,
                   ),
                 ),
-
                 const SizedBox(height: 14),
-
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 18,
@@ -819,9 +781,7 @@ class _ScanPageState extends State<ScanPage> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
                 if (_selecaoSelecionada != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -863,9 +823,7 @@ class _ScanPageState extends State<ScanPage> {
                       ],
                     ),
                   ),
-
                 const SizedBox(height: 16),
-
                 Row(
                   children: [
                     Expanded(
@@ -906,9 +864,7 @@ class _ScanPageState extends State<ScanPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 14),
-
                 TextField(
                   controller: _codigosController,
                   enabled: !_carregando,
@@ -919,9 +875,7 @@ class _ScanPageState extends State<ScanPage> {
                     hintText: 'CÓDIGOS RECONHECIDOS OU GERADOS',
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 if (_carregando)
                   const Column(
                     children: [
@@ -943,9 +897,7 @@ class _ScanPageState extends State<ScanPage> {
                     primary: true,
                     onPressed: _continuarParaConfirmacao,
                   ),
-
                 const SizedBox(height: 18),
-
                 const Text(
                   'O RECONHECIMENTO AUTOMÁTICO É APENAS UMA AJUDA. SEMPRE CONFIRA OS CÓDIGOS ANTES DE CONTINUAR.',
                   textAlign: TextAlign.center,
@@ -958,7 +910,6 @@ class _ScanPageState extends State<ScanPage> {
                 ),
               ],
             ),
-
             if (_carregando)
               Positioned.fill(
                 child: IgnorePointer(
@@ -1044,9 +995,8 @@ class _ScanButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = primary
-        ? AppColors.primaryBlue
-        : AppColors.surfaceLight;
+    final backgroundColor =
+        primary ? AppColors.primaryBlue : AppColors.surfaceLight;
 
     final foregroundColor = primary ? Colors.black : AppColors.textPrimary;
 
