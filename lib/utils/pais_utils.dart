@@ -2,12 +2,12 @@ const Map<String, String> siglasPorPais = {
   'ESPECIAIS': 'FWC',
   'MÉXICO': 'MEX',
   'ÁFRICA DO SUL': 'RSA',
-  'REPÚBLICA DA CORÉIA': 'KOR',
+  'REPÚBLICA DA COREIA': 'KOR',
   'REPÚBLICA TCHECA': 'CZE',
   'CANADÁ': 'CAN',
-  'BOSNIA E HERZEGOVINA': 'BIH',
-  'QATAR': 'QAT',
-  'SUIÇA': 'SUI',
+  'BÓSNIA E HERZEGOVINA': 'BIH',
+  'CATAR': 'QAT',
+  'SUÍÇA': 'SUI',
   'BRASIL': 'BRA',
   'MARROCOS': 'MAR',
   'HAITI': 'HAI',
@@ -20,7 +20,7 @@ const Map<String, String> siglasPorPais = {
   'CURAÇAO': 'CUW',
   'COSTA DO MARFIM': 'CIV',
   'EQUADOR': 'ECU',
-  'HOLANDA': 'NED',
+  'PAÍSES BAIXOS': 'NED',
   'JAPÃO': 'JPN',
   'SUÉCIA': 'SWE',
   'TUNÍSIA': 'TUN',
@@ -42,56 +42,137 @@ const Map<String, String> siglasPorPais = {
   'JORDÂNIA': 'JOR',
   'PORTUGAL': 'POR',
   'REPÚBLICA DEMOCRÁTICA DO CONGO': 'COD',
-  'UZBEQUISTÃO': 'UZB',
+  'USBEQUISTÃO': 'UZB',
   'COLÔMBIA': 'COL',
   'INGLATERRA': 'ENG',
   'CROÁCIA': 'CRO',
-  'GHANA': 'GHA',
+  'GANA': 'GHA',
   'PANAMÁ': 'PAN',
   'COCA-COLA': 'CC',
 };
 
+const Map<String, int> ordemPorPais = {
+  'ESPECIAIS': 0,
+  'MÉXICO': 1,
+  'ÁFRICA DO SUL': 2,
+  'REPÚBLICA DA COREIA': 4,
+  'REPÚBLICA TCHECA': 5,
+  'CANADÁ': 6,
+  'BÓSNIA E HERZEGOVINA': 7,
+  'CATAR': 8,
+  'SUÍÇA': 9,
+  'BRASIL': 10,
+  'MARROCOS': 11,
+  'HAITI': 12,
+  'ESCÓCIA': 13,
+  'ESTADOS UNIDOS': 14,
+  'PARAGUAI': 15,
+  'AUSTRÁLIA': 16,
+  'TURQUIA': 17,
+  'ALEMANHA': 18,
+  'CURAÇAO': 18,
+  'COSTA DO MARFIM': 19,
+  'EQUADOR': 20,
+  'PAÍSES BAIXOS': 21,
+  'JAPÃO': 22,
+  'SUÉCIA': 23,
+  'TUNÍSIA': 24,
+  'BÉLGICA': 25,
+  'EGITO': 26,
+  'IRÃ': 27,
+  'NOVA ZELÂNDIA': 28,
+  'ESPANHA': 29,
+  'CABO VERDE': 30,
+  'ARÁBIA SAUDITA': 31,
+  'URUGUAI': 32,
+  'FRANÇA': 33,
+  'SENEGAL': 34,
+  'IRAQUE': 35,
+  'NORUEGA': 36,
+  'ARGENTINA': 37,
+  'ARGÉLIA': 38,
+  'ÁUSTRIA': 39,
+  'JORDÂNIA': 40,
+  'PORTUGAL': 41,
+  'REPÚBLICA DEMOCRÁTICA DO CONGO': 42,
+  'USBEQUISTÃO': 43,
+  'COLÔMBIA': 44,
+  'INGLATERRA': 45,
+  'CROÁCIA': 46,
+  'GANA': 47,
+  'PANAMÁ': 48,
+  'COCA-COLA': 49,
+};
+
 const Map<String, String> nomesInglesParaNomeApp = {
   'SPECIALS': 'ESPECIAIS',
+  'FWC': 'ESPECIAIS',
+
   'MEXICO': 'MÉXICO',
   'SOUTH AFRICA': 'ÁFRICA DO SUL',
-  'KOREA REPUBLIC': 'REPÚBLICA DA CORÉIA',
-  'REPUBLIC OF KOREA': 'REPÚBLICA DA CORÉIA',
+
+  'KOREA REPUBLIC': 'REPÚBLICA DA COREIA',
+  'REPUBLIC OF KOREA': 'REPÚBLICA DA COREIA',
+  'SOUTH KOREA': 'REPÚBLICA DA COREIA',
+
   'CZECH REPUBLIC': 'REPÚBLICA TCHECA',
+  'CZECHIA': 'REPÚBLICA TCHECA',
+
   'CANADA': 'CANADÁ',
-  'BOSNIA AND HERZEGOVINA': 'BOSNIA E HERZEGOVINA',
-  'QATAR': 'QATAR',
-  'SWITZERLAND': 'SUIÇA',
+
+  'BOSNIA AND HERZEGOVINA': 'BÓSNIA E HERZEGOVINA',
+  'BOSNIA HERZEGOVINA': 'BÓSNIA E HERZEGOVINA',
+  'BOSNIA': 'BÓSNIA E HERZEGOVINA',
+
+  'QATAR': 'CATAR',
+  'SWITZERLAND': 'SUÍÇA',
   'BRAZIL': 'BRASIL',
   'MOROCCO': 'MARROCOS',
   'HAITI': 'HAITI',
   'SCOTLAND': 'ESCÓCIA',
+
   'UNITED STATES': 'ESTADOS UNIDOS',
   'UNITED STATES OF AMERICA': 'ESTADOS UNIDOS',
   'USA': 'ESTADOS UNIDOS',
+
   'PARAGUAY': 'PARAGUAI',
   'AUSTRALIA': 'AUSTRÁLIA',
+
   'TURKEY': 'TURQUIA',
   'TÜRKIYE': 'TURQUIA',
+  'TURKIYE': 'TURQUIA',
+
   'GERMANY': 'ALEMANHA',
+
   'CURACAO': 'CURAÇAO',
   'CURAÇAO': 'CURAÇAO',
+
   'COTE D IVOIRE': 'COSTA DO MARFIM',
   'CÔTE D IVOIRE': 'COSTA DO MARFIM',
+  'COTE DIVOIRE': 'COSTA DO MARFIM',
   'IVORY COAST': 'COSTA DO MARFIM',
+
   'ECUADOR': 'EQUADOR',
-  'NETHERLANDS': 'HOLANDA',
+
+  'NETHERLANDS': 'PAÍSES BAIXOS',
+  'HOLLAND': 'PAÍSES BAIXOS',
+
   'JAPAN': 'JAPÃO',
   'SWEDEN': 'SUÉCIA',
   'TUNISIA': 'TUNÍSIA',
   'BELGIUM': 'BÉLGICA',
   'EGYPT': 'EGITO',
+
   'IRAN': 'IRÃ',
   'IRAN IR': 'IRÃ',
+  'IR IRAN': 'IRÃ',
+
   'NEW ZEALAND': 'NOVA ZELÂNDIA',
   'SPAIN': 'ESPANHA',
   'CAPE VERDE': 'CABO VERDE',
+
   'SAUDI ARABIA': 'ARÁBIA SAUDITA',
+
   'URUGUAY': 'URUGUAI',
   'FRANCE': 'FRANÇA',
   'SENEGAL': 'SENEGAL',
@@ -102,41 +183,55 @@ const Map<String, String> nomesInglesParaNomeApp = {
   'AUSTRIA': 'ÁUSTRIA',
   'JORDAN': 'JORDÂNIA',
   'PORTUGAL': 'PORTUGAL',
+
   'DR CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
   'CONGO DR': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
   'DEMOCRATIC REPUBLIC OF THE CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
-  'UZBEKISTAN': 'UZBEQUISTÃO',
+  'RD CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
+
+  'UZBEKISTAN': 'USBEQUISTÃO',
+  'UZBEQUISTAO': 'USBEQUISTÃO',
+
   'COLOMBIA': 'COLÔMBIA',
   'ENGLAND': 'INGLATERRA',
   'CROATIA': 'CROÁCIA',
-  'GHANA': 'GHANA',
+
+  'GHANA': 'GANA',
+  'GANA': 'GANA',
+
   'PANAMA': 'PANAMÁ',
+
   'COCA COLA': 'COCA-COLA',
   'COCA-COLA': 'COCA-COLA',
+  'COCACOLA': 'COCA-COLA',
+  'CC': 'COCA-COLA',
 };
 
 String? bandeiraAssetPais(String nome) {
   final nomeNormalizado = nome.trim().toUpperCase();
 
-  const bandeiras = {
-    'MÉXICO': '../assets/flags/mex.png',
-    'ÁFRICA DO SUL': '../assets/flags/rsa.png',
-    'REPÚBLICA DA CORÉIA': '../assets/flags/kor.png',
-    'REPÚBLICA TCHECA': '../assets/flags/cze.png',
-    'CANADÁ': '../assets/flags/can.png',
-    'BOSNIA E HERZEGOVINA': '../assets/flags/bih.png',
-    'QATAR': '../assets/flags/qat.png',
-    'SUIÇA': '../assets/flags/sui.png',
-    'BRASIL': '../assets/flags/bra.png',
-  };
+  if (nomeNormalizado == 'ESPECIAIS') {
+    return 'assets/flags/fwc.png';
+  }
 
-  return bandeiras[nomeNormalizado];
+  if (nomeNormalizado == 'COCA-COLA') {
+    return 'assets/flags/cc.png';
+  }
+
+  final sigla = siglasPorPais[nomeNormalizado];
+
+  if (sigla == null) return null;
+
+  return 'assets/flags/${sigla.toLowerCase()}.png';
 }
 
 String? prefixoPorNomeDetectadoNoAlbum(String textoDetectado) {
   final textoNormalizado = normalizarTextoPais(textoDetectado);
 
   final apelidosFortes = <String, String>{
+    'SPECIALS': 'ESPECIAIS',
+    'FWC': 'ESPECIAIS',
+
     'MEXICO': 'MÉXICO',
     'MEXIC0': 'MÉXICO',
     'MEX1CO': 'MÉXICO',
@@ -148,55 +243,98 @@ String? prefixoPorNomeDetectadoNoAlbum(String textoDetectado) {
     'S0UTH AFRICA': 'ÁFRICA DO SUL',
     'SOUTH AFR1CA': 'ÁFRICA DO SUL',
 
-    'BRAZIL': 'BRASIL',
-    'ARGENTINA': 'ARGENTINA',
-    'GERMANY': 'ALEMANHA',
-    'FRANCE': 'FRANÇA',
-    'ENGLAND': 'INGLATERRA',
-    'PORTUGAL': 'PORTUGAL',
-    'SPAIN': 'ESPANHA',
-    'JAPAN': 'JAPÃO',
-    'NETHERLANDS': 'HOLANDA',
-    'BELGIUM': 'BÉLGICA',
-    'CROATIA': 'CROÁCIA',
-    'COLOMBIA': 'COLÔMBIA',
-    'URUGUAY': 'URUGUAI',
-    'PARAGUAY': 'PARAGUAI',
-    'AUSTRALIA': 'AUSTRÁLIA',
-    'CANADA': 'CANADÁ',
-    'MOROCCO': 'MARROCOS',
-    'SENEGAL': 'SENEGAL',
-    'TUNISIA': 'TUNÍSIA',
-    'ALGERIA': 'ARGÉLIA',
-    'AUSTRIA': 'ÁUSTRIA',
-    'NORWAY': 'NORUEGA',
-    'SWEDEN': 'SUÉCIA',
-    'EGYPT': 'EGITO',
-    'ECUADOR': 'EQUADOR',
-    'PANAMA': 'PANAMÁ',
-    'SCOTLAND': 'ESCÓCIA',
-    'TURKEY': 'TURQUIA',
-    'TÜRKIYE': 'TURQUIA',
-    'JORDAN': 'JORDÂNIA',
-    'UZBEKISTAN': 'UZBEQUISTÃO',
+    'REPUBLIC OF KOREA': 'REPÚBLICA DA COREIA',
+    'KOREA REPUBLIC': 'REPÚBLICA DA COREIA',
+    'SOUTH KOREA': 'REPÚBLICA DA COREIA',
 
-    'REPUBLIC OF KOREA': 'REPÚBLICA DA CORÉIA',
-    'KOREA REPUBLIC': 'REPÚBLICA DA CORÉIA',
     'CZECH REPUBLIC': 'REPÚBLICA TCHECA',
-    'BOSNIA AND HERZEGOVINA': 'BOSNIA E HERZEGOVINA',
+    'CZECHIA': 'REPÚBLICA TCHECA',
+
+    'CANADA': 'CANADÁ',
+
+    'BOSNIA AND HERZEGOVINA': 'BÓSNIA E HERZEGOVINA',
+    'BOSNIA HERZEGOVINA': 'BÓSNIA E HERZEGOVINA',
+    'BOSNIA': 'BÓSNIA E HERZEGOVINA',
+
+    'QATAR': 'CATAR',
+    'SWITZERLAND': 'SUÍÇA',
+    'BRAZIL': 'BRASIL',
+    'MOROCCO': 'MARROCOS',
+    'HAITI': 'HAITI',
+    'SCOTLAND': 'ESCÓCIA',
+
     'UNITED STATES OF AMERICA': 'ESTADOS UNIDOS',
     'UNITED STATES': 'ESTADOS UNIDOS',
+    'USA': 'ESTADOS UNIDOS',
+
+    'PARAGUAY': 'PARAGUAI',
+    'AUSTRALIA': 'AUSTRÁLIA',
+
+    'TURKEY': 'TURQUIA',
+    'TÜRKIYE': 'TURQUIA',
+    'TURKIYE': 'TURQUIA',
+
+    'GERMANY': 'ALEMANHA',
+
+    'CURACAO': 'CURAÇAO',
+    'CURAÇAO': 'CURAÇAO',
+
     'COTE D IVOIRE': 'COSTA DO MARFIM',
     'CÔTE D IVOIRE': 'COSTA DO MARFIM',
+    'COTE DIVOIRE': 'COSTA DO MARFIM',
     'IVORY COAST': 'COSTA DO MARFIM',
+
+    'ECUADOR': 'EQUADOR',
+    'NETHERLANDS': 'PAÍSES BAIXOS',
+    'HOLLAND': 'PAÍSES BAIXOS',
+
+    'JAPAN': 'JAPÃO',
+    'SWEDEN': 'SUÉCIA',
+    'TUNISIA': 'TUNÍSIA',
+    'BELGIUM': 'BÉLGICA',
+    'EGYPT': 'EGITO',
+
+    'IRAN': 'IRÃ',
+    'IRAN IR': 'IRÃ',
+    'IR IRAN': 'IRÃ',
+
     'NEW ZEALAND': 'NOVA ZELÂNDIA',
+    'SPAIN': 'ESPANHA',
     'CAPE VERDE': 'CABO VERDE',
     'SAUDI ARABIA': 'ARÁBIA SAUDITA',
+
+    'URUGUAY': 'URUGUAI',
+    'FRANCE': 'FRANÇA',
+    'SENEGAL': 'SENEGAL',
+    'IRAQ': 'IRAQUE',
+    'NORWAY': 'NORUEGA',
+    'ARGENTINA': 'ARGENTINA',
+    'ALGERIA': 'ARGÉLIA',
+    'AUSTRIA': 'ÁUSTRIA',
+    'JORDAN': 'JORDÂNIA',
+    'PORTUGAL': 'PORTUGAL',
+
     'DR CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
     'CONGO DR': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
     'DEMOCRATIC REPUBLIC OF THE CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
+    'RD CONGO': 'REPÚBLICA DEMOCRÁTICA DO CONGO',
+
+    'UZBEKISTAN': 'USBEQUISTÃO',
+    'UZBEQUISTAO': 'USBEQUISTÃO',
+
+    'COLOMBIA': 'COLÔMBIA',
+    'ENGLAND': 'INGLATERRA',
+    'CROATIA': 'CROÁCIA',
+
+    'GHANA': 'GANA',
+    'GANA': 'GANA',
+
+    'PANAMA': 'PANAMÁ',
+
     'COCA COLA': 'COCA-COLA',
     'COCA-COLA': 'COCA-COLA',
+    'COCACOLA': 'COCA-COLA',
+    'CC': 'COCA-COLA',
   };
 
   for (final entrada in apelidosFortes.entries) {
@@ -292,24 +430,80 @@ String bandeiraEmojiPais(String nome) {
   final nomeNormalizado = nome.trim().toUpperCase();
 
   const bandeiras = {
+    'ESPECIAIS': '🏆',
+    'FWC': '🏆',
+
+    'COCA-COLA': '🥤',
+    'COCA COLA': '🥤',
+    'CC': '🥤',
+
     'MÉXICO': '🇲🇽',
-    'CANADÁ': '🇨🇦',
-    'ESTADOS UNIDOS': '🇺🇸',
-    'BRASIL': '🇧🇷',
-    'ARGENTINA': '🇦🇷',
-    'FRANÇA': '🇫🇷',
-    'ALEMANHA': '🇩🇪',
-    'ESPANHA': '🇪🇸',
-    'PORTUGAL': '🇵🇹',
-    'INGLATERRA': '🏴',
-    'URUGUAI': '🇺🇾',
-    'ITÁLIA': '🇮🇹',
-    'HOLANDA': '🇳🇱',
-    'BÉLGICA': '🇧🇪',
-    'CROÁCIA': '🇭🇷',
-    'JAPÃO': '🇯🇵',
-    'COREIA DO SUL': '🇰🇷',
     'ÁFRICA DO SUL': '🇿🇦',
+
+    'REPÚBLICA DA COREIA': '🇰🇷',
+    'REPÚBLICA DA CORÉIA': '🇰🇷',
+    'COREIA DO SUL': '🇰🇷',
+
+    'REPÚBLICA TCHECA': '🇨🇿',
+    'CANADÁ': '🇨🇦',
+
+    'BÓSNIA E HERZEGOVINA': '🇧🇦',
+    'BOSNIA E HERZEGOVINA': '🇧🇦',
+
+    'CATAR': '🇶🇦',
+
+    'SUÍÇA': '🇨🇭',
+    'SUIÇA': '🇨🇭',
+
+    'BRASIL': '🇧🇷',
+    'MARROCOS': '🇲🇦',
+    'HAITI': '🇭🇹',
+    'ESCÓCIA': '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
+    'ESTADOS UNIDOS': '🇺🇸',
+    'PARAGUAI': '🇵🇾',
+    'AUSTRÁLIA': '🇦🇺',
+    'TURQUIA': '🇹🇷',
+    'ALEMANHA': '🇩🇪',
+    'CURAÇAO': '🇨🇼',
+    'COSTA DO MARFIM': '🇨🇮',
+    'EQUADOR': '🇪🇨',
+
+    'PAÍSES BAIXOS': '🇳🇱',
+    'HOLANDA': '🇳🇱',
+
+    'JAPÃO': '🇯🇵',
+    'SUÉCIA': '🇸🇪',
+    'TUNÍSIA': '🇹🇳',
+    'BÉLGICA': '🇧🇪',
+    'EGITO': '🇪🇬',
+    'IRÃ': '🇮🇷',
+    'NOVA ZELÂNDIA': '🇳🇿',
+    'ESPANHA': '🇪🇸',
+    'CABO VERDE': '🇨🇻',
+    'ARÁBIA SAUDITA': '🇸🇦',
+    'URUGUAI': '🇺🇾',
+    'FRANÇA': '🇫🇷',
+    'SENEGAL': '🇸🇳',
+    'IRAQUE': '🇮🇶',
+    'NORUEGA': '🇳🇴',
+    'ARGENTINA': '🇦🇷',
+    'ARGÉLIA': '🇩🇿',
+    'ÁUSTRIA': '🇦🇹',
+    'JORDÂNIA': '🇯🇴',
+    'PORTUGAL': '🇵🇹',
+    'REPÚBLICA DEMOCRÁTICA DO CONGO': '🇨🇩',
+
+    'USBEQUISTÃO': '🇺🇿',
+    'UZBEQUISTÃO': '🇺🇿',
+
+    'COLÔMBIA': '🇨🇴',
+    'INGLATERRA': '🏴',
+    'CROÁCIA': '🇭🇷',
+
+    'GANA': '🇬🇭',
+    'GHANA': '🇬🇭',
+
+    'PANAMÁ': '🇵🇦',
   };
 
   return bandeiras[nomeNormalizado] ?? '';

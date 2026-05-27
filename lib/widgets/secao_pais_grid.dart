@@ -56,7 +56,6 @@ class SecaoPaisGrid extends StatelessWidget {
   void aoTocarFigurinha(BuildContext context, Figurinha figurinha) {
     if (!figurinha.tenho) {
       onMarcar(figurinha, true);
-      onMostrarMensagem('${figurinha.numeroAlbum} marcada como preenchida');
       return;
     }
 
@@ -124,7 +123,7 @@ class SecaoPaisGrid extends StatelessWidget {
             crossAxisCount: 5,
             crossAxisSpacing: 10,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.05,
+            childAspectRatio: 0.95,
           ),
           itemBuilder: (context, index) {
             final figurinha = figurinhas[index];

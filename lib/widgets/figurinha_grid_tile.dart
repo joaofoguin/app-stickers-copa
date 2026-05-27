@@ -65,26 +65,27 @@ class FigurinhaGridTile extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(6, 6, 6, 5),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      sigla,
+                      sigla.toUpperCase(),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: textColor,
-                        fontSize: 20,
+                        color: Colors.black,
+                        fontSize: 17,
                         fontWeight: FontWeight.w500,
-                        height: 1,
+                        height: 0.95,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
                     Text(
                       numero,
                       style: const TextStyle(
-                        color: textColor,
-                        fontSize: 24,
+                        color: Colors.black,
+                        fontSize: 25,
                         fontWeight: FontWeight.w500,
-                        height: 1,
+                        height: 0.95,
                       ),
                     ),
                   ],

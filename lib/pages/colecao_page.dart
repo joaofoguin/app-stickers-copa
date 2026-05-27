@@ -14,7 +14,7 @@ enum TipoListaColecao {
   repetidas,
 }
 
-class ColecaoPage extends StatelessWidget {
+class ColecaoPage extends StatefulWidget {
   final List<Figurinha> figurinhas;
   final String textoBusca;
   final String selecaoSelecionada;
@@ -40,14 +40,54 @@ class ColecaoPage extends StatelessWidget {
     required this.onMostrarMensagem,
   });
 
+  @override
+  State<ColecaoPage> createState() => _ColecaoPageState();
+}
+
+class _ColecaoPageState extends State<ColecaoPage> {
+  late final TextEditingController buscaController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    buscaController = TextEditingController(
+      text: widget.textoBusca,
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant ColecaoPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.textoBusca != buscaController.text) {
+      buscaController.text = widget.textoBusca;
+
+      buscaController.selection = TextSelection.collapsed(
+        offset: buscaController.text.length,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    buscaController.dispose();
+    super.dispose();
+  }
+
+  bool get temFiltroAtivo {
+    return widget.textoBusca.trim().isNotEmpty ||
+        widget.selecaoSelecionada != 'Todas';
+  }
+
   int get totalTenho {
-    return figurinhas.where((figurinha) => figurinha.tenho).length;
+    return widget.figurinhas.where((figurinha) => figurinha.tenho).length;
   }
 
   List<String> get selecoesDisponiveis {
     final Map<String, int> ordemPorPais = {};
 
-    for (final figurinha in figurinhas) {
+    for (final figurinha in widget.figurinhas) {
       final pais = figurinha.pais;
       final ordem = figurinha.ordemPais;
 
@@ -71,16 +111,16 @@ class ColecaoPage extends StatelessWidget {
   }
 
   List<Figurinha> get figurinhasFiltradas {
-    final busca = textoBusca.toLowerCase();
+    final busca = widget.textoBusca.trim().toLowerCase();
 
-    final lista = figurinhas.where((figurinha) {
-      final correspondeBusca = textoBusca.isEmpty ||
+    final lista = widget.figurinhas.where((figurinha) {
+      final correspondeBusca = busca.isEmpty ||
           figurinha.numeroAlbum.toLowerCase().contains(busca) ||
           figurinha.pais.toLowerCase().contains(busca) ||
           figurinha.nome.toLowerCase().contains(busca);
 
-      final correspondeSelecao = selecaoSelecionada == 'Todas' ||
-          figurinha.pais == selecaoSelecionada;
+      final correspondeSelecao = widget.selecaoSelecionada == 'Todas' ||
+          figurinha.pais == widget.selecaoSelecionada;
 
       return correspondeBusca && correspondeSelecao;
     }).toList();
@@ -102,10 +142,12 @@ class ColecaoPage extends StatelessWidget {
 
   int totalPorSelecao(String selecao) {
     if (selecao == 'Todas') {
-      return figurinhas.length;
+      return widget.figurinhas.length;
     }
 
-    return figurinhas.where((figurinha) => figurinha.pais == selecao).length;
+    return widget.figurinhas.where((figurinha) {
+      return figurinha.pais == selecao;
+    }).length;
   }
 
   int totalTenhoPorSelecao(String selecao) {
@@ -113,7 +155,7 @@ class ColecaoPage extends StatelessWidget {
       return totalTenho;
     }
 
-    return figurinhas.where((figurinha) {
+    return widget.figurinhas.where((figurinha) {
       return figurinha.pais == selecao && figurinha.tenho;
     }).length;
   }
@@ -148,6 +190,17 @@ class ColecaoPage extends StatelessWidget {
     }
   }
 
+  void limparBusca() {
+    buscaController.clear();
+    widget.onBuscaChanged('');
+  }
+
+  void limparFiltros() {
+    buscaController.clear();
+    widget.onBuscaChanged('');
+    widget.onSelecaoChanged('Todas');
+  }
+
   Widget construirTabSelector() {
     return Builder(
       builder: (context) {
@@ -168,6 +221,62 @@ class ColecaoPage extends StatelessWidget {
     );
   }
 
+  Widget construirBotaoLimparFiltros() {
+    if (!temFiltroAtivo) {
+      return const SizedBox.shrink();
+    }
+
+    final textoBuscaAtivo = widget.textoBusca.trim().isNotEmpty;
+    final selecaoAtiva = widget.selecaoSelecionada != 'Todas';
+
+    String textoBotao = 'LIMPAR FILTROS';
+
+    if (textoBuscaAtivo && !selecaoAtiva) {
+      textoBotao = 'LIMPAR BUSCA';
+    } else if (!textoBuscaAtivo && selecaoAtiva) {
+      textoBotao = 'VOLTAR PARA TODAS';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: GestureDetector(
+          onTap: limparFiltros,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 8,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFF4A4A4A),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.close,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  textoBotao,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget construirGradeAgrupada(
     BuildContext context,
     List<Figurinha> lista, {
@@ -180,7 +289,7 @@ class ColecaoPage extends StatelessWidget {
           SizedBox(height: 96),
           Center(
             child: Text(
-              'Nenhuma figurinha encontrada',
+              'NENHUMA FIGURINHA ENCONTRADA',
               style: TextStyle(fontSize: 18),
             ),
           ),
@@ -203,10 +312,10 @@ class ColecaoPage extends StatelessWidget {
           totalPais: totalPorSelecao(pais),
           tenhoPais: totalTenhoPorSelecao(pais),
           resumo: resumoSecao(pais, itens, tipo),
-          onMarcar: onMarcar,
-          onAdicionarRepetida: onAdicionarRepetida,
-          onRemoverRepetida: onRemoverRepetida,
-          onMostrarMensagem: onMostrarMensagem,
+          onMarcar: widget.onMarcar,
+          onAdicionarRepetida: widget.onAdicionarRepetida,
+          onRemoverRepetida: widget.onRemoverRepetida,
+          onMostrarMensagem: widget.onMostrarMensagem,
         );
       }).toList(),
     );
@@ -221,37 +330,45 @@ class ColecaoPage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(22, 16, 22, 8),
           child: TextField(
+            controller: buscaController,
+            textCapitalization: TextCapitalization.characters,
             decoration: InputDecoration(
               hintText: 'BUSCAR FIGURINHA',
               prefixIcon: const Icon(Icons.search),
+              suffixIcon: widget.textoBusca.isNotEmpty
+                  ? IconButton(
+                      onPressed: limparBusca,
+                      icon: const Icon(Icons.close),
+                    )
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(18),
               ),
             ),
-            onChanged: onBuscaChanged,
+            onChanged: widget.onBuscaChanged,
           ),
         ),
 
         const SizedBox(height: 16),
 
         SizedBox(
-          height: 108,
+          height: 118,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
             itemCount: selecoesDisponiveis.length,
             itemBuilder: (context, index) {
               final selecao = selecoesDisponiveis[index];
 
               return Padding(
-                padding: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.only(right: 14),
                 child: SelecaoStoryItem(
                   nome: selecao,
                   total: totalPorSelecao(selecao),
                   tenho: totalTenhoPorSelecao(selecao),
-                  selecionado: selecaoSelecionada == selecao,
+                  selecionado: widget.selecaoSelecionada == selecao,
                   onTap: () {
-                    onSelecaoChanged(selecao);
+                    widget.onSelecaoChanged(selecao);
                   },
                 ),
               );
@@ -259,13 +376,13 @@ class ColecaoPage extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 8),
+        construirBotaoLimparFiltros(),
 
         Expanded(
           child: TabBarView(
             children: [
               RefreshIndicator(
-                onRefresh: onAtualizar,
+                onRefresh: widget.onAtualizar,
                 child: construirGradeAgrupada(
                   context,
                   figurinhasFiltradas,
@@ -273,7 +390,7 @@ class ColecaoPage extends StatelessWidget {
                 ),
               ),
               RefreshIndicator(
-                onRefresh: onAtualizar,
+                onRefresh: widget.onAtualizar,
                 child: construirGradeAgrupada(
                   context,
                   figurinhasFaltantesFiltradas,
@@ -281,7 +398,7 @@ class ColecaoPage extends StatelessWidget {
                 ),
               ),
               RefreshIndicator(
-                onRefresh: onAtualizar,
+                onRefresh: widget.onAtualizar,
                 child: construirGradeAgrupada(
                   context,
                   figurinhasRepetidasFiltradas,

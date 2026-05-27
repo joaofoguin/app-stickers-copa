@@ -203,7 +203,7 @@ class _ScanResultPageState extends State<ScanResultPage> {
                         crossAxisCount: 5,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 1.05,
+                        childAspectRatio: 0.95,
                       ),
                       itemBuilder: (context, index) {
                         final codigo = codigos[index];
@@ -442,7 +442,7 @@ class _CodigoFigurinhaTile extends StatelessWidget {
             children: [
               Positioned.fill(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(6, 6, 6, 5),
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -452,19 +452,19 @@ class _CodigoFigurinhaTile extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Colors.black,
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          height: 1,
+                          height: 0.9,
                         ),
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 1),
                       Text(
                         numero,
                         style: const TextStyle(
                           color: Colors.black,
-                          fontSize: 27,
+                          fontSize: 24,
                           fontWeight: FontWeight.w500,
-                          height: 1,
+                          height: 0.9,
                         ),
                       ),
                     ],

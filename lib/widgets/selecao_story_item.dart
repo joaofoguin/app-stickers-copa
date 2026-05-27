@@ -48,7 +48,7 @@ class SelecaoStoryItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 82,
+        width: 88,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

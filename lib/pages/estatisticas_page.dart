@@ -130,13 +130,12 @@ class EstatisticasPage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(14, 20, 14, 140),
       children: [
         const _SecaoTitulo(titulo: 'RESUMO'),
-
         const SizedBox(height: 14),
 
         GridView.count(
           padding: EdgeInsets.zero,
           crossAxisCount: 2,
-          childAspectRatio: 2.85,
+          childAspectRatio: 2.55,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           mainAxisSpacing: 14,
@@ -176,9 +175,7 @@ class EstatisticasPage extends StatelessWidget {
         ),
 
         const SizedBox(height: 26),
-
         const _SecaoTitulo(titulo: 'PROGRESSO GERAL'),
-
         const SizedBox(height: 14),
 
         _ProgressoGeralCard(
@@ -189,15 +186,14 @@ class EstatisticasPage extends StatelessWidget {
         ),
 
         const SizedBox(height: 26),
-
         const _SecaoTitulo(titulo: 'PROGRESSO POR SELEÇÃO'),
-
         const SizedBox(height: 14),
 
         SizedBox(
-          height: 106,
+          height: 118,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
             itemCount: selecoesDisponiveis.length,
             itemBuilder: (context, index) {
               final selecao = selecoesDisponiveis[index];
@@ -217,9 +213,7 @@ class EstatisticasPage extends StatelessWidget {
         ),
 
         const SizedBox(height: 26),
-
         const _SecaoTitulo(titulo: 'DESTAQUES'),
-
         const SizedBox(height: 14),
 
         _DestaqueItem(
@@ -287,13 +281,13 @@ class _ResumoCard extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
-        vertical: 10,
+        vertical: 8,
       ),
       child: Row(
         children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 42,
+            height: 42,
             decoration: const BoxDecoration(
               color: AppColors.primaryBlue,
               shape: BoxShape.circle,
@@ -301,13 +295,14 @@ class _ResumoCard extends StatelessWidget {
             child: Icon(
               icone,
               color: Colors.black,
-              size: 24,
+              size: 22,
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
@@ -321,14 +316,14 @@ class _ResumoCard extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 3),
                 Text(
                   valor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 26,
+                    fontSize: 24,
                     fontWeight: FontWeight.w500,
                     height: 1,
                   ),
@@ -436,8 +431,11 @@ class _DestaqueItem extends StatelessWidget {
               size: 24,
             ),
           ),
+
           const SizedBox(width: 14),
-          Expanded(
+
+          SizedBox(
+            width: 145,
             child: Text(
               titulo,
               maxLines: 1,
@@ -449,17 +447,22 @@ class _DestaqueItem extends StatelessWidget {
               ),
             ),
           ),
+
           const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              valor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
+
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                valor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),

@@ -1,8 +1,10 @@
 import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../models/figurinha.dart';
 import '../../../utils/pais_utils.dart';
@@ -40,6 +42,7 @@ class _ScanPageState extends State<ScanPage> {
   bool _carregando = false;
   Uint8List? _imagemBytes;
   String? _ultimoTextoOcr;
+  String? _imagemPath;
 
   @override
   void initState() {
@@ -279,17 +282,13 @@ class _ScanPageState extends State<ScanPage> {
     return selecoes;
   }
 
-  void _girarImagem() {
+  Future<void> _girarImagem() async {
     if (_imagemBytes == null) return;
 
     final imagemDecodificada = img.decodeImage(_imagemBytes!);
 
     if (imagemDecodificada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Não foi possível girar esta imagem.'),
-        ),
-      );
+      _mostrarMensagem('Não foi possível girar esta imagem.');
       return;
     }
 
@@ -302,8 +301,16 @@ class _ScanPageState extends State<ScanPage> {
       img.encodeJpg(imagemRotacionada, quality: 90),
     );
 
+    final diretorio = await getTemporaryDirectory();
+    final arquivo = File(
+      '${diretorio.path}/scan_rotacionado_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    );
+
+    await arquivo.writeAsBytes(novosBytes, flush: true);
+
     setState(() {
       _imagemBytes = novosBytes;
+      _imagemPath = arquivo.path;
       _ultimoTextoOcr = null;
     });
   }
@@ -346,6 +353,7 @@ class _ScanPageState extends State<ScanPage> {
 
     setState(() {
       _imagemBytes = bytes;
+      _imagemPath = imagem.path;
       _ultimoTextoOcr = null;
     });
   }
@@ -373,7 +381,10 @@ class _ScanPageState extends State<ScanPage> {
     });
 
     try {
-      final textoExtraido = await _webOcrService.reconhecerTexto(_imagemBytes!);
+      final textoExtraido = await _webOcrService.reconhecerTexto(
+        _imagemBytes!,
+        imagePath: _imagemPath,
+      );
 
       final resultado = _scanService.processarTextoExtraido(textoExtraido);
       final prefixoDetectado =
@@ -639,6 +650,7 @@ class _ScanPageState extends State<ScanPage> {
     _fimController.dispose();
     _codigosController.dispose();
     _scanService.dispose();
+    _webOcrService.dispose();
     super.dispose();
   }
 
