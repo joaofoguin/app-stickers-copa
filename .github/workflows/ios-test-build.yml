@@ -1,0 +1,9 @@
+name: Build iOS para Teste
+
+on:
+  push:
+    branches: [ main ] # Executa sempre que você enviar código para a branch main
+
+jobs:
+  build:
+    runs-on: macos-latest # Abre o ambiente macOS virtual gratuito do 
